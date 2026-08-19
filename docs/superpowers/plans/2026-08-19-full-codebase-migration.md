@@ -1032,7 +1032,7 @@ git commit -m "feat: migrate sas/04 risk segmentation into homeequity.transforms
 - Consumes: `homeequity.transforms.cleaning.buildFinalDataset` (Task 3).
 - Produces:
   - `frequencyTable(df: DataFrame, column: str, includeMissing: bool = False) -> DataFrame` — columns `VALUE`, `FREQUENCY`, `PERCENT`; drops null class values by default like `PROC FREQ` (the flag is the SAS `missing` option)
-  - `summaryByGroup(df, groupCols: list[str], valueCols: list[str]) -> DataFrame`
+  - `summaryByGroup(df, groupCols: list[str], valueCols: list[str], includeMissing: bool = False) -> DataFrame` — drops rows with a null class value by default like `PROC MEANS` with `CLASS` (the flag is the SAS `missing` option)
   - `crossTabDefaultRate(df, rowCol: str, colCol: str, includeMissing: bool = False) -> DataFrame` — columns `rowCol`, `colCol`, `N`, `DEFAULT_RATE`; drops rows with a null class value by default like `PROC TABULATE`
   - `topStatesByAverageLoan(df, minLoans: int = 10, limit: int = 10) -> DataFrame` — columns `STATE`, `NUM_LOANS`, `AVG_LOAN`, `AVG_PROPERTY_VALUE`, `DEFAULT_RATE`; ordered by `AVG_LOAN` desc with `STATE` asc as a deterministic tie-breaker
 
@@ -1085,6 +1085,18 @@ def test_summary_by_group_returns_one_row_per_group(finalDf):
     assert summary.count() == finalDf.select("LOAN_OUTCOME").distinct().count()
     assert "LOAN_MEAN" in summary.columns
     assert "DEBTINC_STDDEV" in summary.columns
+
+
+def test_summary_by_group_excludes_missing_class_by_default(finalDf):
+    groupCols = ["REASON", "LOAN_OUTCOME"]
+    valueCols = ["LOAN", "LTV", "DEBTINC"]
+    summary = summaryByGroup(finalDf, groupCols, valueCols)
+    assert summary.filter("REASON IS NULL").count() == 0
+    nonNullReason = finalDf.filter("REASON IS NOT NULL").count()
+    assert sum(row["LOAN_COUNT"] for row in summary.collect()) == nonNullReason
+    withMissing = summaryByGroup(finalDf, groupCols, valueCols, includeMissing=True)
+    assert withMissing.count() > summary.count()
+    assert withMissing.filter("REASON IS NULL").count() > 0
 
 
 def test_crosstab_default_rate_between_zero_and_one(finalDf):
@@ -1143,13 +1155,20 @@ def frequencyTable(df: DataFrame, column: str, includeMissing: bool = False) -> 
     )
 
 
-def summaryByGroup(df: DataFrame, groupCols: list[str], valueCols: list[str]) -> DataFrame:
+def summaryByGroup(
+    df: DataFrame, groupCols: list[str], valueCols: list[str], includeMissing: bool = False
+) -> DataFrame:
     """SAS: proc means n mean median std min max; class ...; var ... (sas/03 steps 2, 5).
 
-    The class columns used in this codebase (LOAN_OUTCOME, RISK_SEGMENT) are
-    never null after cleaning; if a nullable class column is ever passed, filter
-    its nulls first — PROC MEANS with CLASS also drops missing class values (D-016).
+    PROC MEANS with CLASS drops observations with a missing class value unless
+    `MISSING` is specified; `includeMissing=True` models that SAS option (D-016).
+    REASON in sas/03 step 5 is the case that matters: 252 nulls occur in the
+    raw extract and 159 survive cleaning into the final dataset.
     """
+    counted = df
+    if not includeMissing:
+        for groupCol in groupCols:
+            counted = counted.filter(col(groupCol).isNotNull())
     aggregations = []
     for valueCol in valueCols:
         aggregations.extend([
@@ -1160,7 +1179,7 @@ def summaryByGroup(df: DataFrame, groupCols: list[str], valueCols: list[str]) ->
             sparkMin(col(valueCol)).alias(f"{valueCol}_MIN"),
             sparkMax(col(valueCol)).alias(f"{valueCol}_MAX"),
         ])
-    return df.groupBy(*groupCols).agg(*aggregations)
+    return counted.groupBy(*groupCols).agg(*aggregations)
 
 
 def crossTabDefaultRate(
@@ -1209,7 +1228,7 @@ def topStatesByAverageLoan(df: DataFrame, minLoans: int = 10, limit: int = 10) -
 - [ ] **Step 4: Run the tests**
 
 Run: `python -m pytest tests/test_reporting.py -v`
-Expected: 7 passed. If `test_frequency_percentages_sum_to_100` fails by a rounding hair, widen only the `abs` tolerance in the test — do not round inside `frequencyTable`, because Task 7 compares its counts to SAS.
+Expected: 8 passed. If `test_frequency_percentages_sum_to_100` fails by a rounding hair, widen only the `abs` tolerance in the test — do not round inside `frequencyTable`, because Task 7 compares its counts to SAS.
 
 - [ ] **Step 5: Record deviations and commit**
 
@@ -1219,7 +1238,7 @@ Append to `docs/deviations.md`:
 | D-005 | `proc tabulate` | sas/03 | `crossTabDefaultRate` returns a long-format grouped DataFrame | No PySpark equivalent for TABULATE's printed layout | Same numbers, different presentation |
 | D-006 | `proc means` median / percentiles | sas/03, sas/02 | `percentile_approx` / `approxQuantile` | Spark percentiles are approximate on distributed data | Percentile comparisons need a tolerance (see Task 7) |
 | D-007 | `proc means` class-level totals | sas/03 | Group rows only; no `all='Total'` row | Spark `groupBy` emits no grand-total row; add `rollup` if needed | Totals must be computed separately |
-| D-016 | `PROC FREQ`/`PROC MEANS`/`PROC TABULATE` drop missing class values unless `MISSING` is specified | sas/03, sas/04 | `frequencyTable` and `crossTabDefaultRate` filter null class values by default and use the non-null total as the percent denominator; `includeMissing=True` reproduces the SAS `missing` option | Spark `groupBy` emits null as its own group by default, so a naive translation adds a null row and inflates the percent denominator | Frequencies and percentages match SAS exactly (e.g. `JOB` has 279 nulls in the raw extract); callers wanting the null group must opt in |
+| D-016 | `PROC FREQ`/`PROC MEANS`/`PROC TABULATE` drop missing class values unless `MISSING` is specified | sas/03, sas/04 | `frequencyTable`, `summaryByGroup`, and `crossTabDefaultRate` filter null class values by default and use the non-null total as the percent denominator where applicable; `includeMissing=True` reproduces the SAS `missing` option | Spark `groupBy` emits null as its own group by default, so a naive translation adds a null row and inflates the percent denominator or emits a null class group | Frequencies and percentages match SAS exactly (e.g. `JOB` has 279 nulls in the raw extract); `summaryByGroup` excludes the 159 null-`REASON` rows surviving cleaning (252 `REASON` nulls in the raw extract); callers wanting null groups must opt in |
 | D-017 | `proc sql outobs=10 ... order by avg_loan desc` returns one stable listing | sas/03 | `topStatesByAverageLoan` orders by `AVG_LOAN` desc, then `STATE` asc before `.limit(10)` | Spark `orderBy` does not guarantee stable tie ordering across runs/partitions, so `.limit()` on a single-key sort is nondeterministic under ties | Output is reproducible run-to-run. Related trap: `dropDuplicates()` keeps an arbitrary row per key and is **not** equivalent to `PROC SORT NODUPKEY` (which keeps the first row in sort order); do not introduce it as a NODUPKEY translation |
 ```
 

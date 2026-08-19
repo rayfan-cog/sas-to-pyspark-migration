@@ -22,13 +22,20 @@ def frequencyTable(df: DataFrame, column: str, includeMissing: bool = False) -> 
     )
 
 
-def summaryByGroup(df: DataFrame, groupCols: list[str], valueCols: list[str]) -> DataFrame:
+def summaryByGroup(
+    df: DataFrame, groupCols: list[str], valueCols: list[str], includeMissing: bool = False
+) -> DataFrame:
     """SAS: proc means n mean median std min max; class ...; var ... (sas/03 steps 2, 5).
 
-    The class columns used in this codebase (LOAN_OUTCOME, RISK_SEGMENT) are
-    never null after cleaning; if a nullable class column is ever passed, filter
-    its nulls first — PROC MEANS with CLASS also drops missing class values (D-016).
+    PROC MEANS with CLASS drops observations with a missing class value unless
+    `MISSING` is specified; `includeMissing=True` models that SAS option (D-016).
+    REASON in sas/03 step 5 is the case that matters: 252 nulls occur in the
+    raw extract and 159 survive cleaning into the final dataset.
     """
+    counted = df
+    if not includeMissing:
+        for groupCol in groupCols:
+            counted = counted.filter(col(groupCol).isNotNull())
     aggregations = []
     for valueCol in valueCols:
         aggregations.extend([
@@ -39,7 +46,7 @@ def summaryByGroup(df: DataFrame, groupCols: list[str], valueCols: list[str]) ->
             sparkMin(col(valueCol)).alias(f"{valueCol}_MIN"),
             sparkMax(col(valueCol)).alias(f"{valueCol}_MAX"),
         ])
-    return df.groupBy(*groupCols).agg(*aggregations)
+    return counted.groupBy(*groupCols).agg(*aggregations)
 
 
 def crossTabDefaultRate(
