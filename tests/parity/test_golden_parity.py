@@ -23,10 +23,6 @@ GOLDEN_FILES = {
     "risk_segment_freq": "risk_segment_freq.csv",
 }
 
-# freq_job.csv needs a SAS rerun of 01-05 plus the extended exporter, so only the
-# test that consumes it skips while it is absent.
-PENDING_GOLDEN = {"freq_job"}
-
 # Counts must match exactly. Continuous statistics are compared with a relative
 # tolerance: SAS and Spark both accumulate in IEEE 754 doubles but in a
 # different order, so the last couple of digits can differ.
@@ -38,10 +34,7 @@ def goldenPath(name: str) -> str:
     return os.path.join(pipeline.GOLDEN_DIR, GOLDEN_FILES[name])
 
 
-missing_golden = [
-    name for name in GOLDEN_FILES
-    if name not in PENDING_GOLDEN and not os.path.exists(goldenPath(name))
-]
+missing_golden = [name for name in GOLDEN_FILES if not os.path.exists(goldenPath(name))]
 
 pytestmark = pytest.mark.skipif(
     bool(missing_golden),
@@ -88,22 +81,27 @@ def test_freq_loan_outcome(frames):
 
 
 def test_job_frequencies_match_sas(frames):
-    # JOB carries 279 nulls in the raw extract, so this comparison fails if the
-    # PySpark side counts the null group PROC FREQ drops by default (D-016), or
-    # if untrimmed JOB values split a category (D-013).
+    # JOB carries nulls, so this comparison fails if the PySpark side counts the
+    # null group PROC FREQ excludes from its percentages (D-016), or if untrimmed
+    # JOB values split a category (D-013).
     golden = read_golden("freq_job")
+    categories = [row for row in golden if row["JOB"]]
+    missing = [row for row in golden if not row["JOB"]]
     _, final, _ = frames
     actual = pipeline.freq_job(final)
 
     assert None not in actual
-    assert set(actual) == {row["JOB"] for row in golden}
-    for row in golden:
+    assert set(actual) == {row["JOB"] for row in categories}
+    for row in categories:
         frequency, percent = actual[row["JOB"]]
         assert frequency == int(row["FREQUENCY"])
         assert percent == pytest.approx(float(row["PERCENT"]), abs=PERCENT_ABSTOL)
     assert sum(frequency for frequency, _ in actual.values()) == final.filter(
         "JOB IS NOT NULL"
     ).count()
+    # PROC FREQ's out= dataset keeps one missing-class row with a blank PERCENT
+    # (it is excluded from the percentage base); the PySpark table drops it.
+    assert [int(row["FREQUENCY"]) for row in missing] == [final.filter("JOB IS NULL").count()]
 
 
 def test_risk_segment_freq(frames):
