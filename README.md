@@ -19,13 +19,17 @@ Built for teams evaluating a move from SAS to open-source distributed computing 
 
 ## Migration Examples
 
-| # | SAS Program | PySpark Script | Description |
-|---|---|---|---|
-| 1 | `sas/01_data_loading.sas` | `jobs/01_data_loading.py` | Load CSV, apply labels/formats, inspect metadata, preview data |
-| 2 | `sas/02_data_cleaning.sas` | `jobs/02_data_cleaning.py` | Derived columns (LTV, loan outcome), missing value handling, outlier detection |
-| 3 | `sas/03_aggregation_reporting.sas` | `jobs/03_aggregation_reporting.py` | Frequency tables, summary statistics, cross-tabulation, SQL queries |
-| 4 | `sas/04_risk_segmentation.sas` | `jobs/04_risk_segmentation.py` | Risk bucketing (LTV, DTI, delinquency), composite scoring, segment analysis |
-| 5 | `sas/05_logistic_regression.sas` | `jobs/05_logistic_regression.py` | Logistic regression with feature engineering, model evaluation, AUC/confusion matrix |
+| # | SAS Program | Job wrapper | Package module | Description |
+|---|---|---|---|---|
+| 1 | `sas/01_data_loading.sas` | `jobs/01_data_loading.py` | `homeequity.io`, `homeequity.metadata` | Load CSV with a pinned schema, apply labels/formats, inspect metadata, preview data |
+| 2 | `sas/02_data_cleaning.sas` | `jobs/02_data_cleaning.py` | `homeequity.transforms.cleaning` | Derived columns (LTV, loan outcome), missing flags, null and outlier filters |
+| 3 | `sas/03_aggregation_reporting.sas` | `jobs/03_aggregation_reporting.py` | `homeequity.reporting` | Frequency tables, summary statistics, cross-tabulation, top-states query |
+| 4 | `sas/04_risk_segmentation.sas` | `jobs/04_risk_segmentation.py` | `homeequity.transforms.risk` | Risk bucketing (LTV, DTI, delinquency), composite scoring, segment analysis |
+| 5 | `sas/05_logistic_regression.sas` | `jobs/05_logistic_regression.py` | `homeequity.model.logistic` | Logistic regression pipeline, train/valid split, AUC and confusion matrix |
+
+All transformation logic lives in the `src/homeequity/` package; the `jobs/` scripts are
+thin wrappers that call it and print the results. Every intentional SAS/PySpark
+behavioral difference is recorded in [`docs/deviations.md`](docs/deviations.md).
 
 ---
 
@@ -56,8 +60,8 @@ The [`migration_guide/`](migration_guide/) folder contains detailed reference do
 
 ### Prerequisites
 
-- Python 3.8+
-- Java 8 or 11 (required by PySpark)
+- Python 3.10+
+- Java 8, 11, or 17 (required by PySpark)
 
 ### Installation
 
@@ -65,30 +69,31 @@ The [`migration_guide/`](migration_guide/) folder contains detailed reference do
 pip install -r requirements.txt
 ```
 
-### Running the PySpark Scripts
+### Running the Jobs
 
-Each script is self-contained and can be run independently:
+Each job imports the `homeequity` package from `src/`, so run it from the repository
+root with `src` on the path (`data/home_equity.csv` is resolved relative to the root):
 
 ```bash
 # From the repository root directory
-python jobs/01_data_loading.py
-python jobs/02_data_cleaning.py
-python jobs/03_aggregation_reporting.py
-python jobs/04_risk_segmentation.py
-python jobs/05_logistic_regression.py
+PYTHONPATH=src python jobs/01_data_loading.py
+PYTHONPATH=src python jobs/02_data_cleaning.py
+PYTHONPATH=src python jobs/03_aggregation_reporting.py
+PYTHONPATH=src python jobs/04_risk_segmentation.py
+PYTHONPATH=src python jobs/05_logistic_regression.py
 ```
 
 ### Running the Tests
 
-```bash
-python -m pytest tests/test_pyspark_outputs.py -v
-```
-
-Or with unittest directly:
+`pyproject.toml` already puts `src` on the pytest path, so no `PYTHONPATH` is needed:
 
 ```bash
-python -m unittest tests.test_pyspark_outputs -v
+python -m pytest tests -v
 ```
+
+The suite covers each package module (`tests/test_io.py`, `test_cleaning.py`,
+`test_reporting.py`, `test_risk.py`, `test_logistic.py`, `test_session.py`) plus the SAS
+golden parity tests under `tests/parity/`.
 
 ---
 
@@ -153,17 +158,29 @@ sas-to-pyspark-migration/
 │   ├── 04_risk_segmentation.sas               # PROC FORMAT, risk scoring, PROC FREQ
 │   ├── 05_logistic_regression.sas             # PROC LOGISTIC, stepwise, ROC/AUC
 │   └── 99_export_golden.sas                   # Exports golden outputs for parity testing
-├── jobs/
-│   ├── 01_data_loading.py                     # spark.read.csv, printSchema, show
-│   ├── 02_data_cleaning.py                    # withColumn, when/otherwise, na.fill, filter
-│   ├── 03_aggregation_reporting.py            # groupBy, agg, crosstab, spark.sql
-│   ├── 04_risk_segmentation.py                # when/otherwise chains, risk scoring
-│   └── 05_logistic_regression.py              # ML Pipeline, LogisticRegression, Evaluators
+├── src/homeequity/                            # The migrated package (all logic lives here)
+│   ├── session.py                             # SparkSession builder (cluster-safe master)
+│   ├── schema.py                              # Pinned StructType replacing inferSchema
+│   ├── io.py                                  # loadHomeEquity: PROC IMPORT equivalent
+│   ├── metadata.py                            # SAS labels/formats + applyLabels
+│   ├── transforms/cleaning.py                 # Derived columns, missing flags, filters
+│   ├── transforms/risk.py                     # PROC FORMAT buckets, risk score, segment
+│   ├── reporting.py                           # PROC FREQ / MEANS / TABULATE / SQL
+│   └── model/logistic.py                      # PROC LOGISTIC pipeline and evaluation
+├── jobs/                                      # Thin runnable wrappers over the package
+│   ├── 01_data_loading.py                     # loadHomeEquity, applyLabels, printSchema
+│   ├── 02_data_cleaning.py                    # buildFinalDataset, summaryByGroup
+│   ├── 03_aggregation_reporting.py            # frequencyTable, crossTab, topStates
+│   ├── 04_risk_segmentation.py                # buildRiskDataset, segment frequencies
+│   └── 05_logistic_regression.py              # buildPipeline, evaluateModel
+├── docs/
+│   ├── deviations.md                          # Register of intentional SAS/PySpark diffs
+│   └── superpowers/plans/                     # Migration plans (read the newest first)
 ├── migration_guide/
 │   ├── sas_to_pyspark_mapping.md              # Complete SAS → PySpark construct reference
 │   └── common_patterns.md                     # Side-by-side migration pattern examples
 └── tests/
-    ├── test_pyspark_outputs.py                # Validation tests for all PySpark scripts
+    ├── test_io.py, test_cleaning.py, ...      # One test module per package module
     └── parity/
         ├── pipeline.py                        # PySpark reimplementation used for comparison
         ├── test_golden_parity.py              # Asserts PySpark output == SAS golden output
