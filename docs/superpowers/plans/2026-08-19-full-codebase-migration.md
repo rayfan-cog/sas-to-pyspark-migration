@@ -288,14 +288,19 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: ruff check src tests jobs
-      - run: python -m pytest tests -v
+      # tests/test_pyspark_outputs.py is the legacy demo suite with a known-red
+      # baseline (see Task 1 Step 1); it is deleted in Task 8, which also removes
+      # this --ignore so the full tree gates from then on.
+      - run: python -m pytest tests -v --ignore=tests/test_pyspark_outputs.py
 ```
 
 CI/CD requirements binding on every migration PR (including each stacked child-session PR):
 
-- `python -m pytest tests -v` runs the whole tree, so the golden parity suite under
-  `tests/parity/` executes on every push/PR against the committed SAS extracts — parity
-  is a merge gate, not an optional local check.
+- The pytest step runs everything except the legacy demo suite (ignored until Task 8
+  deletes it), so the golden parity suite under `tests/parity/` executes on every
+  push/PR against the committed SAS extracts — parity is a merge gate, not an optional
+  local check. Task 8 must remove the `--ignore` flag in the same PR that deletes
+  `tests/test_pyspark_outputs.py`.
 - A PR may not merge with a red `test` job; stacked PRs merge bottom-up only after the
   PR below them is green and merged (configure branch protection on `main` to require
   the `test` check once this workflow lands).
@@ -323,7 +328,12 @@ the difference.
 - [ ] **Step 10: Run lint**
 
 Run: `ruff check src tests jobs`
-Expected: `All checks passed!` (fix any finding before committing)
+Expected: `All checks passed!` (fix any finding before committing). The legacy scripts
+carry ~20 pre-existing findings (import order, unused imports, an f-string without
+placeholders, a repeated dict key, unnecessary generators). Fix the mechanical ones in
+the renamed `jobs/` scripts as part of this task — they do not change behavior. For
+`tests/test_pyspark_outputs.py` (deleted in Task 8), add a `[tool.ruff.lint.per-file-ignores]`
+entry in `pyproject.toml` instead of editing the file, and remove that entry in Task 8.
 
 - [ ] **Step 11: Commit**
 
