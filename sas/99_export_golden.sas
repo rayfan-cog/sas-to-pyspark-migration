@@ -40,7 +40,15 @@ proc freq data=work.home_equity_risk noprint;
     tables RISK_SEGMENT / out=work.risk_segment_freq (rename=(COUNT=FREQUENCY));
 run;
 
+/* Display formats inherited from the source columns (DOLLAR, F8.1) would make    */
+/* proc export write rounded text such as "$16,622"; strip them so the CSVs keep  */
+/* full precision and stay machine-readable for the parity tests.                 */
 %macro dump(ds);
+    proc datasets library=work nolist;
+        modify &ds;
+        format _numeric_;
+    quit;
+
     proc export data=work.&ds outfile="&outdir./&ds..csv" dbms=csv replace;
     run;
 %mend;

@@ -23,7 +23,7 @@ GOLDEN_FILES = {
 # tolerance: SAS and Spark both accumulate in IEEE 754 doubles but in a
 # different order, so the last couple of digits can differ.
 STAT_RTOL = 1e-9
-PERCENT_ABSTOL = 1e-9
+PERCENT_RTOL = 1e-9
 
 missing_golden = [
     name for name, filename in GOLDEN_FILES.items()
@@ -72,7 +72,7 @@ def test_freq_loan_outcome(frames):
     for row in golden:
         frequency, percent = actual[row["LOAN_OUTCOME"]]
         assert frequency == int(row["FREQUENCY"])
-        assert percent == pytest.approx(float(row["PERCENT"]), abs=PERCENT_ABSTOL)
+        assert percent == pytest.approx(float(row["PERCENT"]), rel=PERCENT_RTOL)
 
 
 def test_risk_segment_freq(frames):
@@ -84,7 +84,7 @@ def test_risk_segment_freq(frames):
     for row in golden:
         frequency, percent = actual[row["RISK_SEGMENT"]]
         assert frequency == int(row["FREQUENCY"])
-        assert percent == pytest.approx(float(row["PERCENT"]), abs=PERCENT_ABSTOL)
+        assert percent == pytest.approx(float(row["PERCENT"]), rel=PERCENT_RTOL)
 
 
 def test_means_by_outcome(frames):

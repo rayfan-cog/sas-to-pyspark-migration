@@ -95,8 +95,9 @@ Default,1,997,997,350,16621.965898,40.52080847,10944.471425,17.978908725
 Paid,1,4340,4340,3903,19000.714286,33.734581815,11019.700641,6.5059836869
 ```
 
-Consider adding `format _numeric_;` to the exporter so the committed golden file is
-comparison-grade.
+The exporter has since been changed to strip formats before `proc export`, so a future
+run writes the comparison-grade file directly and no formatted variant is produced. The
+committed `means_by_outcome_formatted.csv` remains as evidence of this run.
 
 ## Licensing
 
