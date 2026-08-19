@@ -16,17 +16,19 @@ for engine, site, date, source commit, path adaptations and a review of the run 
 | `freq_loan_outcome.csv` | `LOAN_OUTCOME`, `FREQUENCY`, `PERCENT` | yes — exact counts, percent to 1e-9 |
 | `risk_segment_freq.csv` | `RISK_SEGMENT`, `FREQUENCY`, `PERCENT` | yes — exact counts, percent to 1e-9 |
 | `means_by_outcome.csv` | `LOAN_OUTCOME`, `_TYPE_`, `_FREQ_`, per-variable `COUNT`/`MEAN`/`STDDEV` | yes — counts exact, statistics to 1e-9 relative |
-| `means_by_outcome_formatted.csv` | the same dataset exactly as `sas/99_export_golden.sas` writes it today | no — reference only |
+| `means_by_outcome_formatted.csv` | the same dataset as first written by the generating run, before formats were stripped | no — evidence only |
 | `sas_run.log` | full SAS log of the generating run | no — evidence |
 
 ### Why there are two means files
 
-`99_export_golden.sas` exports means with the SAS variable formats inherited from the
-source columns (DOLLAR / F8.1), so the exporter's own output rounds to `"$16,622"` and
-`40.5`. That file is kept verbatim as `means_by_outcome_formatted.csv`.
+At the time of the generating run, `99_export_golden.sas` exported means with the SAS
+variable formats inherited from the source columns (DOLLAR / F8.1), rounding values to
+`"$16,622"` and `40.5`. That output is kept verbatim as `means_by_outcome_formatted.csv`.
 `means_by_outcome.csv` is the same `WORK.MEANS_BY_OUTCOME` dataset re-exported in the
 same session after `format _numeric_;`, and is the one the tests compare against.
-Adding `format _numeric_;` to the exporter would collapse the two.
+
+The exporter now strips formats itself, so a regeneration writes the comparison-grade
+`means_by_outcome.csv` directly and produces no formatted variant.
 
 ### Log contains errors
 
@@ -56,8 +58,10 @@ a defect in the checked-in SAS code — `PROC SURVEYSELECT` without `OUTALL` lea
    %include "sas/99_export_golden.sas";
    ```
 
-3. Copy the CSVs it writes into this directory, refresh `PROVENANCE.md`, and commit
-   them together.
+3. Copy the four CSVs it writes into this directory, refresh `PROVENANCE.md`, and commit
+   them together. `means_by_outcome_formatted.csv` is an artifact of the original run
+   only — a regeneration does not reproduce it, and it can be dropped once the run it
+   documents is no longer the committed set.
 
 Regenerate whenever `data/home_equity.csv` changes or any program under `sas/` changes.
 Stale golden files are worse than missing ones: the parity tests will pass against

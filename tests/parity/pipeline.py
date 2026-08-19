@@ -14,7 +14,6 @@ import os
 from pyspark.sql import DataFrame, SparkSession
 from pyspark.sql.functions import col, count, initcap, lit, mean, stddev, when
 from pyspark.sql.types import (
-    DateType,
     DoubleType,
     StringType,
     StructField,
@@ -42,7 +41,7 @@ SCHEMA = StructType(
         StructField("NINQ", DoubleType(), True),
         StructField("CLNO", DoubleType(), True),
         StructField("DEBTINC", DoubleType(), True),
-        StructField("APPDATE", DateType(), True),
+        StructField("APPDATE", DoubleType(), True),  # SAS date serial, numeric in PROC IMPORT
         StructField("CITY", StringType(), True),
         StructField("STATE", StringType(), True),
         StructField("DIVISION", StringType(), True),
