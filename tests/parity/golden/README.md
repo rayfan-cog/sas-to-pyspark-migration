@@ -14,6 +14,7 @@ for engine, site, date, source commit, path adaptations and a review of the run 
 |---|---|---|
 | `row_counts.csv` | `STAGE`, `N` for `home_equity`, `home_equity_final`, `home_equity_risk` | yes — exact integer equality |
 | `freq_loan_outcome.csv` | `LOAN_OUTCOME`, `FREQUENCY`, `PERCENT` | yes — exact counts, percent to 1e-9 |
+| `freq_job.csv` | `JOB`, `FREQUENCY`, `PERCENT` | yes — exact counts, percent to 1e-9. **Not yet produced**: needs a SAS rerun with the extended exporter, so `test_job_frequencies_match_sas` skips until it lands |
 | `risk_segment_freq.csv` | `RISK_SEGMENT`, `FREQUENCY`, `PERCENT` | yes — exact counts, percent to 1e-9 |
 | `means_by_outcome.csv` | `LOAN_OUTCOME`, `_TYPE_`, `_FREQ_`, per-variable `COUNT`/`MEAN`/`STDDEV` | yes — counts exact, statistics to 1e-9 relative |
 | `means_by_outcome_formatted.csv` | the same dataset exactly as `sas/99_export_golden.sas` writes it today | no — reference only |
