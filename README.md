@@ -95,9 +95,18 @@ python -m unittest tests.test_pyspark_outputs -v
 ### SAS parity (golden outputs)
 
 Proving the PySpark code matches SAS requires reference numbers from a real SAS run.
-`sas/99_export_golden.sas` exports them; [`tests/parity/golden/README.md`](tests/parity/golden/README.md)
-has the step-by-step instructions. The parity tests skip themselves until those files
-are checked in.
+`sas/99_export_golden.sas` exports them and the checked-in set under
+[`tests/parity/golden/`](tests/parity/golden/README.md) came from an actual SAS 9.4
+session (provenance and log committed alongside it). Compare against them with:
+
+```bash
+python -m pytest tests/parity -v
+```
+
+`tests/parity/pipeline.py` reimplements loading, cleaning and risk segmentation as
+importable functions, and `tests/parity/test_golden_parity.py` asserts row counts and
+frequencies exactly and continuous statistics to 1e-9. The tests skip themselves if the
+golden files are absent — never hand-write them.
 
 ---
 
@@ -155,7 +164,10 @@ sas-to-pyspark-migration/
 │   └── common_patterns.md                     # Side-by-side migration pattern examples
 └── tests/
     ├── test_pyspark_outputs.py                # Validation tests for all PySpark scripts
-    └── parity/golden/                         # SAS reference outputs (see its README)
+    └── parity/
+        ├── pipeline.py                        # PySpark reimplementation used for comparison
+        ├── test_golden_parity.py              # Asserts PySpark output == SAS golden output
+        └── golden/                            # SAS reference outputs (see its README)
 ```
 
 ---
