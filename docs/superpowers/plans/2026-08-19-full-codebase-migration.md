@@ -24,6 +24,7 @@ Answers the four questions this plan was commissioned to settle. All counts meas
 | Data | `data/home_equity.csv`, 5,960 rows x 18 columns (~1 MB) |
 | Distinct SAS steps to cover | 32 `DATA`/`PROC`/`%let`/`libname` statements |
 | Packaging / CI / lint config | **none** |
+| Current test suite state | `pytest tests -q` -> **1 failed, 13 passed** (verified 2026-08-19 with pyspark 3.5.1): `test_frequency_counts` asserts `5960 == 5681`, i.e. it counts all rows but compares against non-null `JOB` rows |
 
 This is a **small, single-wave migration**: ~400 lines of SAS with no macro library, no `%INCLUDE` graph, no multi-library ETL, one input file. The work is not volume — it is *fidelity*. Every SAS program already has a PySpark counterpart, but the counterparts are demo-grade: each script re-reads the raw CSV and re-derives upstream logic (`jobs/05` re-implements the LTV and filter logic from `02`), so cleaning rules exist in up to three places and will drift. The test file re-implements the transformations inline rather than importing the scripts, so a bug in `pyspark/02_data_cleaning.py` cannot fail a test today.
 
@@ -52,7 +53,7 @@ Do **not** start with reporting even though it looks easiest: it consumes `home_
 | **Absolute SAS path** `/data/home_equity.csv` in `sas/01` | Not a relative path; implies a SAS server mount, not this repo layout | Loader takes a path argument; default resolved from the package root (Task 2) |
 | **Java 8/11/17 + PySpark 3.5.1** | Unpinned today; PySpark version changes `approxQuantile`, ML defaults, CSV parsing | Pin in `requirements.txt` and CI (Task 1) |
 | **Target platform** (Databricks / EMR / Synapse) | Scripts hardcode `.master("local[*]")`, which fails on a managed cluster | Session builder that only sets master when `SPARK_MASTER` is unset (Task 1) |
-| **Directory named `pyspark/` at repo root** | Shadows the installed `pyspark` package when the repo root is on `sys.path` (pytest inserts rootdir) | Rename to `jobs/` (Task 1) — this is a hard blocker for importable tests |
+| **Directory named `pyspark/` at repo root** | Verified **not** a shadowing bug: with `pyspark==3.5.1` installed, `sys.path.insert(0, '.'); import pyspark` still resolves to site-packages, because a regular package beats a namespace-package candidate. It remains a readability trap (`import pyspark` next to `pyspark/02_data_cleaning.py`) | Rename to `jobs/` (Task 1) for clarity, not correctness |
 | **No CI, no lint, no dependency manifest** | Nothing enforces any of the above | Task 1 |
 
 There is no SAS macro library, no `libname` to an RDBMS, no SAS/ACCESS engine, and no ODS destination beyond the default listing — so none of the usual heavyweight migration blockers (stored processes, SAS/CONNECT, EG projects) apply here.
@@ -131,18 +132,21 @@ Wave 1 parallelizes because Tasks 4-6 consume Task 3 **through its published sig
 - Consumes: nothing.
 - Produces: `homeequity.session.getSparkSession(appName: str) -> pyspark.sql.SparkSession`; pytest fixture `spark` (session-scoped `SparkSession`).
 
-- [ ] **Step 1: Rename the shadowing directory and prove the shadow was real**
+- [ ] **Step 1: Record the current baseline, then rename the directory**
 
 ```bash
 cd "$(git rev-parse --show-toplevel)"
-python3 -c "import sys; sys.path.insert(0, '.'); import pyspark; print(pyspark.__path__)"
+pip install "pyspark==3.5.1" "pytest==8.3.3" "ruff==0.6.9"
+python -m pytest tests -q
 ```
 
-Expected before the rename: prints a path ending in `./pyspark` (the repo directory, imported as a namespace package) or raises `ModuleNotFoundError: No module named 'pyspark.sql'`. Either result confirms the shadow. Then:
+Expected: `1 failed, 13 passed` — `test_frequency_counts` fails with `5960 != 5681`. That file is deleted in Task 8; its replacement in Task 5 (`test_frequency_counts_match_row_count`) compares the frequency total against the same frame it summed, which is the assertion the old test meant to make. Do not fix the old file.
 
 ```bash
 git mv pyspark jobs
 ```
+
+This is a readability rename, not a bug fix: `import pyspark` already resolves to site-packages even with the repo root first on `sys.path` (a regular package outranks a namespace-package candidate).
 
 - [ ] **Step 2: Add the dependency manifest**
 
