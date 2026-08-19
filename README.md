@@ -92,6 +92,24 @@ python -m unittest tests.test_pyspark_outputs -v
 
 ---
 
+### SAS parity (golden outputs)
+
+Proving the PySpark code matches SAS requires reference numbers from a real SAS run.
+`sas/99_export_golden.sas` exports them and the checked-in set under
+[`tests/parity/golden/`](tests/parity/golden/README.md) came from an actual SAS 9.4
+session (provenance and log committed alongside it). Compare against them with:
+
+```bash
+python -m pytest tests/parity -v
+```
+
+`tests/parity/pipeline.py` reimplements loading, cleaning and risk segmentation as
+importable functions, and `tests/parity/test_golden_parity.py` asserts row counts and
+frequencies exactly and continuous statistics to 1e-9. The tests skip themselves if the
+golden files are absent — never hand-write them.
+
+---
+
 ## Dataset
 
 The `data/home_equity.csv` file contains 5,960 home equity loan records with 18 columns:
@@ -133,7 +151,8 @@ sas-to-pyspark-migration/
 │   ├── 02_data_cleaning.sas                   # DATA step, arrays, PROC MEANS
 │   ├── 03_aggregation_reporting.sas           # PROC FREQ, PROC MEANS, PROC TABULATE, PROC SQL
 │   ├── 04_risk_segmentation.sas               # PROC FORMAT, risk scoring, PROC FREQ
-│   └── 05_logistic_regression.sas             # PROC LOGISTIC, stepwise, ROC/AUC
+│   ├── 05_logistic_regression.sas             # PROC LOGISTIC, stepwise, ROC/AUC
+│   └── 99_export_golden.sas                   # Exports golden outputs for parity testing
 ├── pyspark/
 │   ├── 01_data_loading.py                     # spark.read.csv, printSchema, show
 │   ├── 02_data_cleaning.py                    # withColumn, when/otherwise, na.fill, filter
@@ -144,7 +163,11 @@ sas-to-pyspark-migration/
 │   ├── sas_to_pyspark_mapping.md              # Complete SAS → PySpark construct reference
 │   └── common_patterns.md                     # Side-by-side migration pattern examples
 └── tests/
-    └── test_pyspark_outputs.py                # Validation tests for all PySpark scripts
+    ├── test_pyspark_outputs.py                # Validation tests for all PySpark scripts
+    └── parity/
+        ├── pipeline.py                        # PySpark reimplementation used for comparison
+        ├── test_golden_parity.py              # Asserts PySpark output == SAS golden output
+        └── golden/                            # SAS reference outputs (see its README)
 ```
 
 ---

@@ -1,0 +1,1271 @@
+ 
+ 1          OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ 68         
+ 69         %let root = /home/ODAUSER;
+ 70         %let rc = %sysfunc(dcreate(golden, &root.));
+ 71         %put NOTE: DCREATE_RC=&rc.;
+ NOTE: DCREATE_RC=/home/ODAUSER/golden
+ 72         %include "&root./01_data_loading.sas";
+ 
+ NOTE: Unable to open parameter catalog: SASUSER.PARMS.PARMS.SLIST in update mode. Temporary parameter values will be saved to 
+ WORK.PARMS.PARMS.SLIST.
+ 86          /**********************************************************************
+ 87          *   PRODUCT:   SAS
+ 88          *   VERSION:   9.4
+ 89          *   CREATOR:   External File Interface
+ 90          *   DATE:      19AUG26
+ 91          *   DESC:      Generated SAS Datastep Code
+ 92          *   TEMPLATE SOURCE:  (None Specified.)
+ 93          ***********************************************************************/
+ 94             data WORK.HOME_EQUITY    ;
+ 95             %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
+ 96             infile '/home/ODAUSER/home_equity.csv' delimiter = ',' MISSOVER DSD lrecl=32767 firstobs=2 ;
+ 97                informat BAD best32. ;
+ 98                informat LOAN best32. ;
+ 99                informat MORTDUE best32. ;
+ 100               informat VALUE best32. ;
+ 101               informat REASON $7. ;
+ 102               informat JOB $7. ;
+ 103               informat YOJ best32. ;
+ 104               informat DEROG best32. ;
+ 105               informat DELINQ best32. ;
+ 106               informat CLAGE best32. ;
+ 107               informat NINQ best32. ;
+ 108               informat CLNO best32. ;
+ 109               informat DEBTINC best32. ;
+ 110               informat APPDATE best32. ;
+ 111               informat CITY $19. ;
+ 112               informat STATE $20. ;
+ 113               informat DIVISION $18. ;
+ 114               informat REGION $9. ;
+ 115               format BAD best12. ;
+ 116               format LOAN best12. ;
+ 117               format MORTDUE best12. ;
+ 118               format VALUE best12. ;
+ 119               format REASON $7. ;
+ 120               format JOB $7. ;
+ 121               format YOJ best12. ;
+ 122               format DEROG best12. ;
+ 123               format DELINQ best12. ;
+ 124               format CLAGE best12. ;
+ 125               format NINQ best12. ;
+ 126               format CLNO best12. ;
+ 127               format DEBTINC best12. ;
+ 128               format APPDATE best12. ;
+ 129               format CITY $19. ;
+ 130               format STATE $20. ;
+ 131               format DIVISION $18. ;
+ 132               format REGION $9. ;
+ 133            input
+ 134                        BAD
+ 135                        LOAN
+ 136                        MORTDUE
+ 137                        VALUE
+ 138                        REASON  $
+ 139                        JOB  $
+ 140                        YOJ
+ 141                        DEROG
+ 142                        DELINQ
+ 143                        CLAGE
+ 144                        NINQ
+ 145                        CLNO
+ 146                        DEBTINC
+ 147                        APPDATE
+ 148                        CITY  $
+ 149                        STATE  $
+ 150                        DIVISION  $
+ 151                        REGION  $
+ 152            ;
+ 153            if _ERROR_ then call symputx('_EFIERR_',1);  /* set ERROR detection macro variable */
+ 154            run;
+ 
+ NOTE: The infile '/home/ODAUSER/home_equity.csv' is:
+       Filename=/home/ODAUSER/home_equity.csv,
+       Owner Name=ODAUSER,Group Name=oda,
+       Access Permission=-rw-r--r--,
+       Last Modified=19Aug2026:07:58:13,
+       File Size (bytes)=678228
+ 
+ NOTE: 5960 records were read from the infile '/home/ODAUSER/home_equity.csv'.
+       The minimum record length was 58.
+       The maximum record length was 138.
+ NOTE: The data set WORK.HOME_EQUITY has 5960 observations and 18 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.01 seconds
+       user cpu time       0.01 seconds
+       system cpu time     0.00 seconds
+       memory              12066.15k
+       OS Memory           32292.00k
+       Timestamp           08/19/2026 07:58:56 AM
+       Step Count                        24  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     500
+       Page Swaps                        0
+       Voluntary Context Switches        14
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           2320
+       
+ 
+ 5960 rows created in WORK.HOME_EQUITY from /home/ODAUSER/home_equity.csv.
+   
+   
+   
+ NOTE: WORK.HOME_EQUITY data set was successfully created.
+ NOTE: The data set WORK.HOME_EQUITY has 5960 observations and 18 variables.
+ NOTE: PROCEDURE IMPORT used (Total process time):
+       real time           2.28 seconds
+       user cpu time       2.24 seconds
+       system cpu time     0.01 seconds
+       memory              12066.15k
+       OS Memory           32804.00k
+       Timestamp           08/19/2026 07:58:56 AM
+       Step Count                        24  Switch Count  8
+       Page Faults                       0
+       Page Reclaims                     4871
+       Page Swaps                        0
+       Voluntary Context Switches        105
+       Involuntary Context Switches      5
+       Block Input Operations            0
+       Block Output Operations           2416
+       
+ 
+ 
+ NOTE: MODIFY was successful for WORK.HOME_EQUITY.DATA.
+ NOTE: PROCEDURE DATASETS used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              1840.53k
+       OS Memory           26796.00k
+       Timestamp           08/19/2026 07:58:56 AM
+       Step Count                        25  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     305
+       Page Swaps                        0
+       Voluntary Context Switches        0
+       Involuntary Context Switches      1
+       Block Input Operations            0
+       Block Output Operations           264
+       
+ 
+ 
+ NOTE: MODIFY was successful for WORK.HOME_EQUITY.DATA.
+ NOTE: PROCEDURE DATASETS used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              1771.28k
+       OS Memory           26796.00k
+       Timestamp           08/19/2026 07:58:56 AM
+       Step Count                        26  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     276
+       Page Swaps                        0
+       Voluntary Context Switches        0
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           8
+       
+ 
+ 
+ NOTE: PROCEDURE CONTENTS used (Total process time):
+       real time           0.04 seconds
+       user cpu time       0.03 seconds
+       system cpu time     0.00 seconds
+       memory              3405.15k
+       OS Memory           28080.00k
+       Timestamp           08/19/2026 07:58:56 AM
+       Step Count                        27  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     702
+       Page Swaps                        0
+       Voluntary Context Switches        3
+       Involuntary Context Switches      2
+       Block Input Operations            0
+       Block Output Operations           32
+       
+ 
+ 
+ NOTE: There were 20 observations read from the data set WORK.HOME_EQUITY.
+ NOTE: PROCEDURE PRINT used (Total process time):
+       real time           0.04 seconds
+       user cpu time       0.04 seconds
+       system cpu time     0.00 seconds
+       memory              2024.37k
+       OS Memory           28076.00k
+       Timestamp           08/19/2026 07:58:56 AM
+       Step Count                        28  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     302
+       Page Swaps                        0
+       Voluntary Context Switches        0
+       Involuntary Context Switches      1
+       Block Input Operations            0
+       Block Output Operations           24
+       
+ 
+ 199        %include "&root./02_data_cleaning.sas";
+ 
+ NOTE: There were 5960 observations read from the data set WORK.HOME_EQUITY.
+ NOTE: The data set WORK.HOME_EQUITY_CLEAN has 5960 observations and 20 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.01 seconds
+       system cpu time     0.00 seconds
+       memory              3309.43k
+       OS Memory           29616.00k
+       Timestamp           08/19/2026 07:58:56 AM
+       Step Count                        29  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     499
+       Page Swaps                        0
+       Voluntary Context Switches        14
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           2312
+       
+ 
+ 
+ NOTE: There were 5960 observations read from the data set WORK.HOME_EQUITY_CLEAN.
+ NOTE: The data set WORK.HOME_EQUITY_IMPUTED has 5960 observations and 28 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              3337.59k
+       OS Memory           29616.00k
+       Timestamp           08/19/2026 07:58:56 AM
+       Step Count                        30  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     458
+       Page Swaps                        0
+       Voluntary Context Switches        11
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           3080
+       
+ 
+ 
+ NOTE: There were 5960 observations read from the data set WORK.HOME_EQUITY_IMPUTED.
+ NOTE: The data set WORK.HOME_EQUITY_FILTERED has 5848 observations and 28 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.01 seconds
+       system cpu time     0.00 seconds
+       memory              3615.06k
+       OS Memory           30128.00k
+       Timestamp           08/19/2026 07:58:56 AM
+       Step Count                        31  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     528
+       Page Swaps                        0
+       Voluntary Context Switches        11
+       Involuntary Context Switches      1
+       Block Input Operations            0
+       Block Output Operations           3080
+       
+ 
+ 
+ NOTE: There were 5848 observations read from the data set WORK.HOME_EQUITY_FILTERED.
+ NOTE: PROCEDURE MEANS used (Total process time):
+       real time           0.06 seconds
+       user cpu time       0.06 seconds
+       system cpu time     0.01 seconds
+       memory              10118.98k
+       OS Memory           35816.00k
+       Timestamp           08/19/2026 07:58:56 AM
+       Step Count                        32  Switch Count  1
+       Page Faults                       0
+       Page Reclaims                     2282
+       Page Swaps                        0
+       Voluntary Context Switches        24
+       Involuntary Context Switches      4
+       Block Input Operations            0
+       Block Output Operations           16
+       
+ 
+ 
+ NOTE: There were 5848 observations read from the data set WORK.HOME_EQUITY_FILTERED.
+ NOTE: The data set WORK.HOME_EQUITY_FINAL has 5337 observations and 28 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              3617.93k
+       OS Memory           30896.00k
+       Timestamp           08/19/2026 07:58:56 AM
+       Step Count                        33  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     528
+       Page Swaps                        0
+       Voluntary Context Switches        13
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           2824
+       
+ 
+ 
+ NOTE: There were 5337 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: PROCEDURE MEANS used (Total process time):
+       real time           0.02 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.00 seconds
+       memory              7631.84k
+       OS Memory           33984.00k
+       Timestamp           08/19/2026 07:58:56 AM
+       Step Count                        34  Switch Count  1
+       Page Faults                       0
+       Page Reclaims                     1597
+       Page Swaps                        0
+       Voluntary Context Switches        22
+       Involuntary Context Switches      1
+       Block Input Operations            0
+       Block Output Operations           0
+       
+ 
+ 
+ NOTE: There were 10 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: At least one W.D format was too small for the number to be printed. The decimal may be shifted by the "BEST" format.
+ NOTE: PROCEDURE PRINT used (Total process time):
+       real time           0.01 seconds
+       user cpu time       0.01 seconds
+       system cpu time     0.00 seconds
+       memory              2001.90k
+       OS Memory           28844.00k
+       Timestamp           08/19/2026 07:58:56 AM
+       Step Count                        35  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     257
+       Page Swaps                        0
+       Voluntary Context Switches        0
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           16
+       
+ 
+ 284        %include "&root./03_aggregation_reporting.sas";
+ 
+ NOTE: There were 5337 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: PROCEDURE FREQ used (Total process time):
+       real time           0.02 seconds
+       user cpu time       0.03 seconds
+       system cpu time     0.01 seconds
+       memory              2328.84k
+       OS Memory           29104.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        36  Switch Count  3
+       Page Faults                       0
+       Page Reclaims                     340
+       Page Swaps                        0
+       Voluntary Context Switches        21
+       Involuntary Context Switches      2
+       Block Input Operations            0
+       Block Output Operations           264
+       
+ 
+ 
+ NOTE: There were 5337 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: PROCEDURE MEANS used (Total process time):
+       real time           0.03 seconds
+       user cpu time       0.03 seconds
+       system cpu time     0.00 seconds
+       memory              9621.70k
+       OS Memory           35016.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        37  Switch Count  1
+       Page Faults                       0
+       Page Reclaims                     1806
+       Page Swaps                        0
+       Voluntary Context Switches        27
+       Involuntary Context Switches      2
+       Block Input Operations            0
+       Block Output Operations           16
+       
+ 
+ 
+ NOTE: There were 5337 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: PROCEDURE TABULATE used (Total process time):
+       real time           0.02 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.01 seconds
+       memory              10540.37k
+       OS Memory           38088.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        38  Switch Count  5
+       Page Faults                       0
+       Page Reclaims                     2248
+       Page Swaps                        0
+       Voluntary Context Switches        62
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           560
+       
+ 
+ WARNING: Statement terminated early due to OUTOBS=10 option.
+ NOTE: PROCEDURE SQL used (Total process time):
+       real time           0.02 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.01 seconds
+       memory              9716.79k
+       OS Memory           35528.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        39  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     573
+       Page Swaps                        0
+       Voluntary Context Switches        13
+       Involuntary Context Switches      2
+       Block Input Operations            0
+       Block Output Operations           16
+       
+ 
+ 
+ NOTE: There were 5337 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: PROCEDURE MEANS used (Total process time):
+       real time           0.04 seconds
+       user cpu time       0.03 seconds
+       system cpu time     0.00 seconds
+       memory              9631.25k
+       OS Memory           36032.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        40  Switch Count  1
+       Page Faults                       0
+       Page Reclaims                     1900
+       Page Swaps                        0
+       Voluntary Context Switches        38
+       Involuntary Context Switches      2
+       Block Input Operations            0
+       Block Output Operations           0
+       
+ 
+ 342        %include "&root./04_risk_segmentation.sas";
+ NOTE: Format LTV_RISK has been output.
+ NOTE: Format DTI_RISK has been output.
+ NOTE: Format DELINQ_RISK has been output.
+ NOTE: Format RISK_SCORE has been output.
+ 
+ NOTE: PROCEDURE FORMAT used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              297.43k
+       OS Memory           28840.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        41  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     20
+       Page Swaps                        0
+       Voluntary Context Switches        14
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           56
+       
+ 
+ 
+ NOTE: There were 5337 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: The data set WORK.HOME_EQUITY_RISK has 5337 observations and 33 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              3652.50k
+       OS Memory           31920.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        42  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     528
+       Page Swaps                        0
+       Voluntary Context Switches        13
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           3336
+       
+ 
+ 
+ NOTE: There were 5337 observations read from the data set WORK.HOME_EQUITY_RISK.
+ NOTE: PROCEDURE FREQ used (Total process time):
+       real time           0.02 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.01 seconds
+       memory              2268.34k
+       OS Memory           30128.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        43  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     324
+       Page Swaps                        0
+       Voluntary Context Switches        14
+       Involuntary Context Switches      1
+       Block Input Operations            0
+       Block Output Operations           280
+       
+ 
+ 
+ NOTE: There were 5337 observations read from the data set WORK.HOME_EQUITY_RISK.
+ NOTE: PROCEDURE MEANS used (Total process time):
+       real time           0.03 seconds
+       user cpu time       0.04 seconds
+       system cpu time     0.00 seconds
+       memory              8615.46k
+       OS Memory           35008.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        44  Switch Count  1
+       Page Faults                       0
+       Page Reclaims                     1624
+       Page Swaps                        0
+       Voluntary Context Switches        15
+       Involuntary Context Switches      3
+       Block Input Operations            0
+       Block Output Operations           16
+       
+ 
+ 
+ NOTE: There were 5337 observations read from the data set WORK.HOME_EQUITY_RISK.
+ NOTE: PROCEDURE FREQ used (Total process time):
+       real time           0.04 seconds
+       user cpu time       0.04 seconds
+       system cpu time     0.01 seconds
+       memory              2677.06k
+       OS Memory           30132.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        45  Switch Count  4
+       Page Faults                       0
+       Page Reclaims                     389
+       Page Swaps                        0
+       Voluntary Context Switches        26
+       Involuntary Context Switches      3
+       Block Input Operations            0
+       Block Output Operations           544
+       
+ 
+ 474        %include "&root./05_logistic_regression.sas";
+ 
+ NOTE: There were 5337 observations read from the data set WORK.HOME_EQUITY_RISK.
+ NOTE: The data set WORK.MODEL_DATA has 3881 observations and 33 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              3635.06k
+       OS Memory           31664.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        46  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     557
+       Page Swaps                        0
+       Voluntary Context Switches        14
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           2568
+       
+ 
+ 
+ NOTE: The data set WORK.MODEL_SPLIT has 2717 observations and 33 variables.
+ NOTE: PROCEDURE SURVEYSELECT used (Total process time):
+       real time           0.01 seconds
+       user cpu time       0.01 seconds
+       system cpu time     0.00 seconds
+       memory              2991.12k
+       OS Memory           30640.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        47  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     565
+       Page Swaps                        0
+       Voluntary Context Switches        18
+       Involuntary Context Switches      2
+       Block Input Operations            0
+       Block Output Operations           1800
+       
+ 
+ 
+ NOTE: Variable selected is uninitialized.
+ NOTE: There were 2717 observations read from the data set WORK.MODEL_SPLIT.
+ NOTE: The data set WORK.TRAIN has 0 observations and 34 variables.
+ NOTE: The data set WORK.VALID has 2717 observations and 34 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              2992.62k
+       OS Memory           30260.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        48  Switch Count  4
+       Page Faults                       0
+       Page Reclaims                     363
+       Page Swaps                        0
+       Voluntary Context Switches        28
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           2064
+       
+ 
+ 
+ NOTE: No observations in data set WORK.TRAIN.
+ NOTE: The model item store WORK.LOGIT_MODEL was deleted because of incomplete information for a subsequent analysis.
+ NOTE: The data set WORK.TRAIN_SCORED has 0 observations and 0 variables.
+ NOTE: PROCEDURE LOGISTIC used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              690.21k
+       OS Memory           28844.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        49  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     96
+       Page Swaps                        0
+       Voluntary Context Switches        13
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           296
+       
+ 
+ NOTE: PROCEDURE PLM used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              193.62k
+       OS Memory           28584.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        50  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     18
+       Page Swaps                        0
+       Voluntary Context Switches        0
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           0
+       
+ ERROR: The file WORK.LOGIT_MODEL does not exist or it is not a valid item store.
+ NOTE: The SAS System stopped processing this step because of errors.
+ 
+ 
+ ERROR: File WORK.VALID_SCORED.DATA does not exist.
+ 
+ NOTE: The SAS System stopped processing this step because of errors.
+ WARNING: The data set WORK.VALID_SCORED may be incomplete.  When this step was stopped there were 0 observations and 2 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              635.46k
+       OS Memory           28844.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        51  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     88
+       Page Swaps                        0
+       Voluntary Context Switches        11
+       Involuntary Context Switches      1
+       Block Input Operations            0
+       Block Output Operations           264
+       
+ 
+ ERROR: Variable BAD not found.
+ 
+ NOTE: The SAS System stopped processing this step because of errors.
+ NOTE: PROCEDURE FREQ used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              437.28k
+       OS Memory           28844.00k
+       Timestamp           08/19/2026 07:58:57 AM
+       Step Count                        52  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     57
+       Page Swaps                        0
+       Voluntary Context Switches        0
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           0
+       
+ 
+ 
+ 
+ NOTE: PROC LOGISTIC is modeling the probability that BAD='1'.
+ NOTE: Convergence criterion (GCONV=1E-8) satisfied.
+ NOTE: Convergence criterion (GCONV=1E-8) satisfied for ROC1.
+ WARNING: Output 'Association' was not created.  Make sure that the output object name, label, or path is spelled correctly.  Also, 
+          verify that the appropriate procedure options are used to produce the requested output object.  For example, verify that 
+          the NOPRINT option is not used.
+ NOTE: There were 2717 observations read from the data set WORK.VALID.
+ NOTE: PROCEDURE LOGISTIC used (Total process time):
+       real time           2.46 seconds
+       user cpu time       0.22 seconds
+       system cpu time     0.07 seconds
+       memory              12989.37k
+       OS Memory           38448.00k
+       Timestamp           08/19/2026 07:58:59 AM
+       Step Count                        53  Switch Count  5
+       Page Faults                       0
+       Page Reclaims                     3247
+       Page Swaps                        0
+       Voluntary Context Switches        15586
+       Involuntary Context Switches      10
+       Block Input Operations            0
+       Block Output Operations           2976
+       
+ 
+ ERROR: File WORK.ASSOCIATION_STATS.DATA does not exist.
+ 
+ NOTE: The SAS System stopped processing this step because of errors.
+ NOTE: PROCEDURE PRINT used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              213.90k
+       OS Memory           34984.00k
+       Timestamp           08/19/2026 07:58:59 AM
+       Step Count                        54  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     16
+       Page Swaps                        0
+       Voluntary Context Switches        0
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           0
+       
+ 
+ 
+ ERROR: Variable BAD not found.
+ 
+ NOTE: The SAS System stopped processing this step because of errors.
+ NOTE: PROCEDURE MEANS used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              493.68k
+       OS Memory           35244.00k
+       Timestamp           08/19/2026 07:58:59 AM
+       Step Count                        55  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     48
+       Page Swaps                        0
+       Voluntary Context Switches        0
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           0
+       
+ 563        %include "&root./99_export_golden.sas";
+ 
+ 
+ NOTE: Table WORK.ROW_COUNTS created, with 3 rows and 2 columns.
+ 
+ NOTE: PROCEDURE SQL used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              10015.65k
+       OS Memory           44472.00k
+       Timestamp           08/19/2026 07:58:59 AM
+       Step Count                        56  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     965
+       Page Swaps                        0
+       Voluntary Context Switches        11
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           264
+       
+ 
+ 
+ NOTE: There were 5337 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: The data set WORK.FREQ_LOAN_OUTCOME has 2 observations and 3 variables.
+ NOTE: PROCEDURE FREQ used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.01 seconds
+       memory              2448.09k
+       OS Memory           36788.00k
+       Timestamp           08/19/2026 07:58:59 AM
+       Step Count                        57  Switch Count  4
+       Page Faults                       0
+       Page Reclaims                     379
+       Page Swaps                        0
+       Voluntary Context Switches        25
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           528
+       
+ 
+ 
+ NOTE: There were 5337 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: The data set WORK.MEANS_BY_OUTCOME has 2 observations and 9 variables.
+ NOTE: PROCEDURE MEANS used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              9776.53k
+       OS Memory           44228.00k
+       Timestamp           08/19/2026 07:58:59 AM
+       Step Count                        58  Switch Count  3
+       Page Faults                       0
+       Page Reclaims                     2118
+       Page Swaps                        0
+       Voluntary Context Switches        28
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           264
+       
+ 
+ 
+ NOTE: There were 5337 observations read from the data set WORK.HOME_EQUITY_RISK.
+ NOTE: The data set WORK.RISK_SEGMENT_FREQ has 4 observations and 3 variables.
+ NOTE: PROCEDURE FREQ used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.01 seconds
+       memory              2450.59k
+       OS Memory           36532.00k
+       Timestamp           08/19/2026 07:58:59 AM
+       Step Count                        59  Switch Count  4
+       Page Faults                       0
+       Page Reclaims                     372
+       Page Swaps                        0
+       Voluntary Context Switches        32
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           536
+       
+ 
+ 
+ NOTE: Unable to open parameter catalog: SASUSER.PARMS.PARMS.SLIST in update mode. Temporary parameter values will be saved to 
+ WORK.PARMS.PARMS.SLIST.
+ 612         /**********************************************************************
+ 613         *   PRODUCT:   SAS
+ 614         *   VERSION:   9.4
+ 615         *   CREATOR:   External File Interface
+ 616         *   DATE:      19AUG26
+ 617         *   DESC:      Generated SAS Datastep Code
+ 618         *   TEMPLATE SOURCE:  (None Specified.)
+ 619         ***********************************************************************/
+ 620            data _null_;
+ 621            %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
+ 622            %let _EFIREC_ = 0;     /* clear export record count macro variable */
+ 623            file '/home/ODAUSER/golden/row_counts.csv' delimiter=',' DSD DROPOVER lrecl=32767;
+ 624            if _n_ = 1 then        /* write column names or labels */
+ 625             do;
+ 626               put
+ 627                  "STAGE"
+ 628               ','
+ 629                  "N"
+ 630               ;
+ 631             end;
+ 632           set  WORK.ROW_COUNTS   end=EFIEOD;
+ 633               format STAGE $20. ;
+ 634               format N best12. ;
+ 635             do;
+ 636               EFIOUT + 1;
+ 637               put STAGE $ @;
+ 638               put N ;
+ 639               ;
+ 640             end;
+ 641            if _ERROR_ then call symputx('_EFIERR_',1);  /* set ERROR detection macro variable */
+ 642            if EFIEOD then call symputx('_EFIREC_',EFIOUT);
+ 643            run;
+ 
+ NOTE: The file '/home/ODAUSER/golden/row_counts.csv' is:
+       Filename=/home/ODAUSER/golden/row_counts.csv,
+       Owner Name=ODAUSER,Group Name=oda,
+       Access Permission=-rw-r--r--,
+       Last Modified=19Aug2026:07:58:59
+ 
+ NOTE: 4 records were written to the file '/home/ODAUSER/golden/row_counts.csv'.
+       The minimum record length was 7.
+       The maximum record length was 22.
+ NOTE: There were 3 observations read from the data set WORK.ROW_COUNTS.
+ NOTE: DATA statement used (Total process time):
+       real time           0.01 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              9363.62k
+       OS Memory           40992.00k
+       Timestamp           08/19/2026 07:58:59 AM
+       Step Count                        60  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     104
+       Page Swaps                        0
+       Voluntary Context Switches        8
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           8
+       
+ 
+ 3 records created in /home/ODAUSER/golden/row_counts.csv from WORK.ROW_COUNTS.
+   
+   
+ NOTE: "/home/ODAUSER/golden/row_counts.csv" file was successfully created.
+ NOTE: PROCEDURE EXPORT used (Total process time):
+       real time           0.03 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.00 seconds
+       memory              9363.62k
+       OS Memory           41252.00k
+       Timestamp           08/19/2026 07:58:59 AM
+       Step Count                        60  Switch Count  8
+       Page Faults                       0
+       Page Reclaims                     1308
+       Page Swaps                        0
+       Voluntary Context Switches        77
+       Involuntary Context Switches      1
+       Block Input Operations            0
+       Block Output Operations           24
+       
+ 
+ 
+ NOTE: Unable to open parameter catalog: SASUSER.PARMS.PARMS.SLIST in update mode. Temporary parameter values will be saved to 
+ WORK.PARMS.PARMS.SLIST.
+ 645         /**********************************************************************
+ 646         *   PRODUCT:   SAS
+ 647         *   VERSION:   9.4
+ 648         *   CREATOR:   External File Interface
+ 649         *   DATE:      19AUG26
+ 650         *   DESC:      Generated SAS Datastep Code
+ 651         *   TEMPLATE SOURCE:  (None Specified.)
+ 652         ***********************************************************************/
+ 653            data _null_;
+ 654            %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
+ 655            %let _EFIREC_ = 0;     /* clear export record count macro variable */
+ 656            file '/home/ODAUSER/golden/freq_loan_outcome.csv' delimiter=',' DSD DROPOVER lrecl=32767;
+ 657            if _n_ = 1 then        /* write column names or labels */
+ 658             do;
+ 659               put
+ 660                  "LOAN_OUTCOME"
+ 661               ','
+ 662                  "FREQUENCY"
+ 663               ','
+ 664                  "PERCENT"
+ 665               ;
+ 666             end;
+ 667           set  WORK.FREQ_LOAN_OUTCOME   end=EFIEOD;
+ 668               format LOAN_OUTCOME $7. ;
+ 669               format FREQUENCY best12. ;
+ 670               format PERCENT best12. ;
+ 671             do;
+ 672               EFIOUT + 1;
+ 673               put LOAN_OUTCOME $ @;
+ 674               put FREQUENCY @;
+ 675               put PERCENT ;
+ 676               ;
+ 677             end;
+ 678            if _ERROR_ then call symputx('_EFIERR_',1);  /* set ERROR detection macro variable */
+ 679            if EFIEOD then call symputx('_EFIREC_',EFIOUT);
+ 680            run;
+ 
+ NOTE: The file '/home/ODAUSER/golden/freq_loan_outcome.csv' is:
+       Filename=/home/ODAUSER/golden/freq_loan_outcome.csv,
+       Owner Name=ODAUSER,Group Name=oda,
+       Access Permission=-rw-r--r--,
+       Last Modified=19Aug2026:07:58:59
+ 
+ NOTE: 3 records were written to the file '/home/ODAUSER/golden/freq_loan_outcome.csv'.
+       The minimum record length was 22.
+       The maximum record length was 30.
+ NOTE: There were 2 observations read from the data set WORK.FREQ_LOAN_OUTCOME.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              9245.87k
+       OS Memory           41504.00k
+       Timestamp           08/19/2026 07:58:59 AM
+       Step Count                        61  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     93
+       Page Swaps                        0
+       Voluntary Context Switches        8
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           8
+       
+ 
+ 2 records created in /home/ODAUSER/golden/freq_loan_outcome.csv from WORK.FREQ_LOAN_OUTCOME.
+   
+   
+ NOTE: "/home/ODAUSER/golden/freq_loan_outcome.csv" file was successfully created.
+ NOTE: PROCEDURE EXPORT used (Total process time):
+       real time           0.03 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.01 seconds
+       memory              9245.87k
+       OS Memory           41764.00k
+       Timestamp           08/19/2026 07:58:59 AM
+       Step Count                        61  Switch Count  8
+       Page Faults                       0
+       Page Reclaims                     1105
+       Page Swaps                        0
+       Voluntary Context Switches        82
+       Involuntary Context Switches      2
+       Block Input Operations            0
+       Block Output Operations           32
+       
+ 
+ 
+ NOTE: Unable to open parameter catalog: SASUSER.PARMS.PARMS.SLIST in update mode. Temporary parameter values will be saved to 
+ WORK.PARMS.PARMS.SLIST.
+ 682         /**********************************************************************
+ 683         *   PRODUCT:   SAS
+ 684         *   VERSION:   9.4
+ 685         *   CREATOR:   External File Interface
+ 686         *   DATE:      19AUG26
+ 687         *   DESC:      Generated SAS Datastep Code
+ 688         *   TEMPLATE SOURCE:  (None Specified.)
+ 689         ***********************************************************************/
+ 690            data _null_;
+ 691            %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
+ 692            %let _EFIREC_ = 0;     /* clear export record count macro variable */
+ 693            file '/home/ODAUSER/golden/means_by_outcome.csv' delimiter=',' DSD DROPOVER lrecl=32767;
+ 694            if _n_ = 1 then        /* write column names or labels */
+ 695             do;
+ 696               put
+ 697                  "LOAN_OUTCOME"
+ 698               ','
+ 699                  "_TYPE_"
+ 700               ','
+ 701                  "_FREQ_"
+ 702               ','
+ 703                  "LOAN_COUNT"
+ 704               ','
+ 705                  "DEBTINC_COUNT"
+ 706               ','
+ 707                  "LOAN_MEAN"
+ 708               ','
+ 709                  "DEBTINC_MEAN"
+ 710               ','
+ 711                  "LOAN_STDDEV"
+ 712               ','
+ 713                  "DEBTINC_STDDEV"
+ 714               ;
+ 715             end;
+ 716           set  WORK.MEANS_BY_OUTCOME   end=EFIEOD;
+ 717               format LOAN_OUTCOME $7. ;
+ 718               format _TYPE_ best12. ;
+ 719               format _FREQ_ best12. ;
+ 720               format LOAN_COUNT best12. ;
+ 721               format DEBTINC_COUNT best12. ;
+ 722               format LOAN_MEAN dollar12. ;
+ 723               format DEBTINC_MEAN 8.1 ;
+ 724               format LOAN_STDDEV dollar12. ;
+ 725               format DEBTINC_STDDEV 8.1 ;
+ 726             do;
+ 727               EFIOUT + 1;
+ 728               put LOAN_OUTCOME $ @;
+ 729               put _TYPE_ @;
+ 730               put _FREQ_ @;
+ 731               put LOAN_COUNT @;
+ 732               put DEBTINC_COUNT @;
+ 733               put LOAN_MEAN @;
+ 734               put DEBTINC_MEAN @;
+ 735               put LOAN_STDDEV @;
+ 736               put DEBTINC_STDDEV ;
+ 737               ;
+ 738             end;
+ 739            if _ERROR_ then call symputx('_EFIERR_',1);  /* set ERROR detection macro variable */
+ 740            if EFIEOD then call symputx('_EFIREC_',EFIOUT);
+ 741            run;
+ 
+ NOTE: The file '/home/ODAUSER/golden/means_by_outcome.csv' is:
+       Filename=/home/ODAUSER/golden/means_by_outcome.csv,
+       Owner Name=ODAUSER,Group Name=oda,
+       Access Permission=-rw-r--r--,
+       Last Modified=19Aug2026:07:58:59
+ 
+ NOTE: 3 records were written to the file '/home/ODAUSER/golden/means_by_outcome.csv'.
+       The minimum record length was 50.
+       The maximum record length was 101.
+ NOTE: There were 2 observations read from the data set WORK.MEANS_BY_OUTCOME.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              9257.46k
+       OS Memory           41504.00k
+       Timestamp           08/19/2026 07:58:59 AM
+       Step Count                        62  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     94
+       Page Swaps                        0
+       Voluntary Context Switches        8
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           8
+       
+ 
+ 2 records created in /home/ODAUSER/golden/means_by_outcome.csv from WORK.MEANS_BY_OUTCOME.
+   
+   
+ NOTE: "/home/ODAUSER/golden/means_by_outcome.csv" file was successfully created.
+ NOTE: PROCEDURE EXPORT used (Total process time):
+       real time           0.03 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.01 seconds
+       memory              9257.46k
+       OS Memory           41764.00k
+       Timestamp           08/19/2026 07:58:59 AM
+       Step Count                        62  Switch Count  8
+       Page Faults                       0
+       Page Reclaims                     950
+       Page Swaps                        0
+       Voluntary Context Switches        85
+       Involuntary Context Switches      1
+       Block Input Operations            0
+       Block Output Operations           32
+       
+ 
+ 
+ NOTE: Unable to open parameter catalog: SASUSER.PARMS.PARMS.SLIST in update mode. Temporary parameter values will be saved to 
+ WORK.PARMS.PARMS.SLIST.
+ 743         /**********************************************************************
+ 744         *   PRODUCT:   SAS
+ 745         *   VERSION:   9.4
+ 746         *   CREATOR:   External File Interface
+ 747         *   DATE:      19AUG26
+ 748         *   DESC:      Generated SAS Datastep Code
+ 749         *   TEMPLATE SOURCE:  (None Specified.)
+ 750         ***********************************************************************/
+ 751            data _null_;
+ 752            %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
+ 753            %let _EFIREC_ = 0;     /* clear export record count macro variable */
+ 754            file '/home/ODAUSER/golden/risk_segment_freq.csv' delimiter=',' DSD DROPOVER lrecl=32767;
+ 755            if _n_ = 1 then        /* write column names or labels */
+ 756             do;
+ 757               put
+ 758                  "RISK_SEGMENT"
+ 759               ','
+ 760                  "FREQUENCY"
+ 761               ','
+ 762                  "PERCENT"
+ 763               ;
+ 764             end;
+ 765           set  WORK.RISK_SEGMENT_FREQ   end=EFIEOD;
+ 766               format RISK_SEGMENT $14. ;
+ 767               format FREQUENCY best12. ;
+ 768               format PERCENT best12. ;
+ 769             do;
+ 770               EFIOUT + 1;
+ 771               put RISK_SEGMENT $ @;
+ 772               put FREQUENCY @;
+ 773               put PERCENT ;
+ 774               ;
+ 775             end;
+ 776            if _ERROR_ then call symputx('_EFIERR_',1);  /* set ERROR detection macro variable */
+ 777            if EFIEOD then call symputx('_EFIREC_',EFIOUT);
+ 778            run;
+ 
+ NOTE: The file '/home/ODAUSER/golden/risk_segment_freq.csv' is:
+       Filename=/home/ODAUSER/golden/risk_segment_freq.csv,
+       Owner Name=ODAUSER,Group Name=oda,
+       Access Permission=-rw-r--r--,
+       Last Modified=19Aug2026:07:58:59
+ 
+ NOTE: 5 records were written to the file '/home/ODAUSER/golden/risk_segment_freq.csv'.
+       The minimum record length was 26.
+       The maximum record length was 30.
+ NOTE: There were 4 observations read from the data set WORK.RISK_SEGMENT_FREQ.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              9187.06k
+       OS Memory           41504.00k
+       Timestamp           08/19/2026 07:58:59 AM
+       Step Count                        63  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     85
+       Page Swaps                        0
+       Voluntary Context Switches        8
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           8
+       
+ 
+ 4 records created in /home/ODAUSER/golden/risk_segment_freq.csv from WORK.RISK_SEGMENT_FREQ.
+   
+   
+ NOTE: "/home/ODAUSER/golden/risk_segment_freq.csv" file was successfully created.
+ NOTE: PROCEDURE EXPORT used (Total process time):
+       real time           0.03 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.00 seconds
+       memory              9187.06k
+       OS Memory           41764.00k
+       Timestamp           08/19/2026 07:58:59 AM
+       Step Count                        63  Switch Count  8
+       Page Faults                       0
+       Page Reclaims                     939
+       Page Swaps                        0
+       Voluntary Context Switches        65
+       Involuntary Context Switches      2
+       Block Input Operations            0
+       Block Output Operations           24
+       
+ 
+ 779        proc product_status; run;
+ 
+ For Base SAS Software ...
+    Custom version information: 9.4_M8
+    Image version information: 9.04.01M8P011823
+ For SAS/STAT ...
+    Custom version information: 15.3
+ For SAS/GRAPH ...
+    Custom version information: 9.4_M8
+ For SAS/ETS ...
+    Custom version information: 15.3
+ For SAS/OR ...
+    Custom version information: 15.3
+ For SAS/IML ...
+    Custom version information: 15.3
+ For SAS/QC ...
+    Custom version information: 15.3
+ For SAS/CONNECT ...
+    Custom version information: 9.4_M8
+ For SAS Enterprise Miner ...
+    Custom version information: 15.3
+ For SAS Time Series Workspace Macros ...
+    Custom version information: 15.3
+ For SAS/ACCESS to Postgres ...
+    Custom version information: 9.4_M8
+ For SAS Integration Technologies ...
+    Custom version information: 9.4_M8
+ For SAS Network Algorithms ...
+    Custom version information: 15.3
+ For SAS/Secure 168-bit ...
+    Custom version information: 9.41_M5
+ For SAS Credit Scoring ...
+    Custom version information: 15.3
+ For SAS Text Miner ...
+    Custom version information: 15.3
+ For SAS High-Performance Forecasting ...
+    Custom version information: 15.3
+ For High Performance Suite ...
+    Custom version information: 2.2_M9
+ For SAS Forecast Server Mid-Tier ...
+    Custom version information: 15.3
+ For SAS/ACCESS Interface to PC Files ...
+    Custom version information: 9.4_M8
+ For SAS/ACCESS Interface to MySQL ...
+    Custom version information: 9.41_M2
+ NOTE: PROCEDURE PRODUCT_STATUS used (Total process time):
+       real time           0.01 seconds
+       user cpu time       0.01 seconds
+       system cpu time     0.00 seconds
+       memory              490.34k
+       OS Memory           36520.00k
+       Timestamp           08/19/2026 07:58:59 AM
+       Step Count                        64  Switch Count  0
+       Page Faults                       16
+       Page Reclaims                     97
+       Page Swaps                        0
+       Voluntary Context Switches        16
+       Involuntary Context Switches      0
+       Block Input Operations            384
+       Block Output Operations           0
+       
+ 
+ 780        
+ 781        
+ 782        OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ 792        
