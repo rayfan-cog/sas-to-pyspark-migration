@@ -111,8 +111,8 @@ Wave 1 parallelizes because Tasks 4-6 consume Task 3 **through its published sig
 | `src/homeequity/model/logistic.py` | `sas/05` logic |
 | `tests/conftest.py` | Session-scoped `spark` fixture, `rawDf` fixture |
 | `tests/test_io.py`, `tests/test_cleaning.py`, `tests/test_risk.py`, `tests/test_reporting.py`, `tests/test_logistic.py` | Per-module unit tests |
-| `tests/parity/golden/*.csv` | SAS ODS extracts |
-| `tests/parity/test_parity.py` | Golden-file comparison |
+| `tests/parity/golden/*.csv` | SAS ODS extracts (four committed via PR #2; `freq_job.csv` pending a SAS rerun) |
+| `tests/parity/test_golden_parity.py` | Golden-file comparison (exists on `main`; Task 7 rewires it onto `src/homeequity` and adds JOB coverage) |
 | `docs/deviations.md` | Register of every intentional SAS/PySpark difference |
 
 **Renamed:** `pyspark/` -> `jobs/` (5 scripts; contents rewritten in Task 8).
@@ -269,6 +269,10 @@ on:
     branches: ["**"]
   pull_request:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -281,10 +285,24 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.10"
+          cache: pip
       - run: pip install -r requirements.txt
       - run: ruff check src tests jobs
       - run: python -m pytest tests -v
 ```
+
+CI/CD requirements binding on every migration PR (including each stacked child-session PR):
+
+- `python -m pytest tests -v` runs the whole tree, so the golden parity suite under
+  `tests/parity/` executes on every push/PR against the committed SAS extracts — parity
+  is a merge gate, not an optional local check.
+- A PR may not merge with a red `test` job; stacked PRs merge bottom-up only after the
+  PR below them is green and merged (configure branch protection on `main` to require
+  the `test` check once this workflow lands).
+- `ruff check src tests jobs` must pass with zero findings on every PR; do not add
+  per-file ignores to silence findings introduced by the PR itself.
+- Never edit files under `tests/parity/golden/` to make CI pass — golden values only
+  change via a real SAS rerun recorded in `tests/parity/golden/PROVENANCE.md`.
 
 - [ ] **Step 9: Seed the deviations register**
 
@@ -1204,6 +1222,15 @@ git commit -m "feat: migrate sas/03 aggregation and reporting into homeequity.re
 
 ### Task 6: Logistic regression (`sas/05`)
 
+**Known SAS-side defect (evidence: `tests/parity/golden/sas_run.log`, PROVENANCE.md):**
+the golden-generation run showed `sas/05_logistic_regression.sas` never trains —
+`PROC SURVEYSELECT ... method=srs samprate=0.7` without `OUTALL` writes only selected
+rows and no `Selected` variable, so `work.train` ends up with 0 observations and
+`PROC LOGISTIC` errors out. There is consequently **no SAS model golden to match**;
+the PySpark model is validated by its own tests below (determinism, split ratio,
+AUC floor), and this defect must be recorded as a deviation row (use the next free
+D-0xx ID) rather than reproduced.
+
 **Files:**
 - Create: `src/homeequity/model/__init__.py`, `src/homeequity/model/logistic.py`, `tests/test_logistic.py`
 - Test: `tests/test_logistic.py`
@@ -1436,18 +1463,44 @@ git commit -m "feat: migrate sas/05 logistic regression into homeequity.model.lo
 
 ### Task 7: SAS parity harness
 
+**Status update (2026-08-19, after PR #2 merged):** the golden set is no longer
+hypothetical. `main` now contains real SAS 9.4 extracts under `tests/parity/golden/`
+(`row_counts.csv`, `freq_loan_outcome.csv`, `means_by_outcome.csv` +
+`means_by_outcome_formatted.csv`, `risk_segment_freq.csv`, plus `PROVENANCE.md` and the
+full `sas_run.log`), a runnable exporter `sas/99_export_golden.sas`, and a working
+harness (`tests/parity/pipeline.py` + `tests/parity/test_golden_parity.py`). This task
+therefore changes from "create the harness" to:
+
+1. **Rewire, don't duplicate**: replace the transformation logic duplicated in
+   `tests/parity/pipeline.py` with imports from `src/homeequity` (Tasks 2-5 functions),
+   keeping the golden comparisons in `tests/parity/test_golden_parity.py` green
+   throughout. `pipeline.py` shrinks to (at most) thin adapters; the pinned schema moves
+   to `homeequity.schema`. Note `pipeline.py` currently reads `APPDATE` as `DateType`,
+   which parses the raw SAS day-count numerics to null — harmless there because no
+   parity test touches `APPDATE`, but the rewire must use `loadHomeEquity`'s D-014
+   conversion instead.
+2. **Add the missing `freq_job` golden**: extend `sas/99_export_golden.sas` with the
+   `PROC FREQ tables JOB` block below and add `test_job_frequencies_match_sas`. The
+   golden CSV itself requires a SAS rerun (see `tests/parity/golden/README.md` for the
+   procedure); until it is produced, only that one test skips — the four existing golden
+   comparisons keep running.
+3. Keep the existing harness conventions where they conflict with the sketches below:
+   golden column names (`STAGE`/`N`, `FREQUENCY`, `<COL>_COUNT/_MEAN/_STDDEV`), the
+   module-level skip, exact counts, and 1e-9 tolerances are already set by
+   `test_golden_parity.py` and `PROVENANCE.md`.
+
 **Files:**
-- Create: `tests/parity/__init__.py`, `tests/parity/golden/README.md`, `tests/parity/golden/row_counts.csv`, `tests/parity/golden/freq_loan_outcome.csv`, `tests/parity/golden/freq_job.csv`, `tests/parity/golden/means_by_outcome.csv`, `tests/parity/golden/risk_segment_freq.csv`, `tests/parity/test_parity.py`
-- Create: `sas/99_export_golden.sas`
-- Test: `tests/parity/test_parity.py`
+- Modify: `sas/99_export_golden.sas` (add the `freq_job` export), `tests/parity/pipeline.py` (rewire onto `src/homeequity`), `tests/parity/test_golden_parity.py` (add the JOB test)
+- Create: `tests/parity/golden/freq_job.csv` (from a real SAS rerun only; test skips while absent)
+- Test: `tests/parity/test_golden_parity.py`
 
 **Interfaces:**
 - Consumes: Tasks 3-5 module functions.
-- Produces: `tests/parity/test_parity.py` (pytest module, skipped when golden files are absent).
+- Produces: `tests/parity/test_golden_parity.py` (pytest module, skipped when golden files are absent).
 
-- [ ] **Step 1: Write the SAS export program**
+- [ ] **Step 1: Extend the SAS export program**
 
-`sas/99_export_golden.sas` — run this on the SAS server after `01`-`05`; it writes the golden CSVs this task compares against:
+`sas/99_export_golden.sas` already exists on `main`; add the `freq_job` block and `%dump(freq_job)` so the next SAS rerun emits it. Reference version with the addition:
 
 ```sas
 /* Export golden outputs for PySpark parity testing. Run after 01-05. */
@@ -1498,29 +1551,21 @@ run;
 %dump(risk_segment_freq);
 ```
 
-- [ ] **Step 2: Obtain the golden files**
+- [ ] **Step 2: Obtain the `freq_job` golden file**
 
-Run `sas/99_export_golden.sas` on the SAS server (or ask the SAS owner to), then copy the five CSVs into `tests/parity/golden/`.
+Four golden CSVs are already committed from a real SAS 9.4 run (see
+`tests/parity/golden/PROVENANCE.md`). Only `freq_job.csv` is outstanding: it requires
+rerunning `01`-`05` + the extended `99_export_golden.sas` in one SAS session per
+`tests/parity/golden/README.md`, then committing the CSV together with a refreshed
+`PROVENANCE.md`. Until then `test_job_frequencies_match_sas` skips. Do not fabricate
+golden values, and never edit committed golden files by hand.
 
-If no SAS environment is reachable: commit `tests/parity/golden/README.md` explaining how to generate them, leave the CSVs absent (the tests skip themselves — see Step 4), add a `docs/deviations.md` row stating parity is unverified, and raise it with the migration owner. Do not fabricate golden values.
+- [ ] **Step 3: Rewire the parity tests onto `src/homeequity`**
 
-`tests/parity/golden/README.md`:
-
-```markdown
-# Golden SAS outputs
-
-Generated by `sas/99_export_golden.sas` against SAS 9.4 using `data/home_equity.csv`.
-Regenerate whenever `data/home_equity.csv` or any program in `sas/` changes, and record
-the SAS version and run date here.
-
-- Source data: data/home_equity.csv (5,960 rows)
-- SAS version: <fill in at generation time>
-- Generated on: <fill in at generation time>
-```
-
-- [ ] **Step 3: Write the parity test**
-
-`tests/parity/test_parity.py`:
+Keep `tests/parity/test_golden_parity.py` (its four tests, fixtures, tolerances, and
+module-level skip), swap its `pipeline` calls for the package functions, and add the
+JOB test. Sketch of the target shape (adapt to the existing file, do not replace it
+wholesale):
 
 ```python
 import csv
@@ -1600,7 +1645,9 @@ def test_group_means_match_sas(finalDf):
 - [ ] **Step 4: Run the parity tests**
 
 Run: `python -m pytest tests/parity -v`
-Expected with golden files present: 5 passed. Expected without them: 5 skipped with the "golden file ... absent" reason.
+Expected with the four committed goldens and no `freq_job.csv`: 4 passed, 1 skipped
+(the JOB test, "golden file ... absent"). After the SAS rerun lands `freq_job.csv`:
+5 passed.
 
 - [ ] **Step 5: Investigate any mismatch before touching the assertion**
 
@@ -1610,7 +1657,7 @@ A row-count mismatch means a filter differs (most likely SAS missing-value seman
 
 ```bash
 git add sas/99_export_golden.sas tests/parity
-git commit -m "test: add SAS golden-output parity harness"
+git commit -m "test: rewire parity harness onto homeequity package and add JOB coverage"
 ```
 
 ---
