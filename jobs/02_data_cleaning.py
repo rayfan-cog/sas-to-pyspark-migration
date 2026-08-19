@@ -5,7 +5,7 @@ Equivalent SAS Program: sas/02_data_cleaning.sas
 """
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, when, initcap, lit
+from pyspark.sql.functions import col, initcap, lit, when
 
 # Initialize SparkSession
 spark = SparkSession.builder \

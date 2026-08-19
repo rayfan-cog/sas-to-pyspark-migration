@@ -5,10 +5,8 @@ Equivalent SAS Program: sas/04_risk_segmentation.sas
 """
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import (
-    col, when, lit, count, mean, stddev,
-    round as spark_round
-)
+from pyspark.sql.functions import col, count, lit, mean, when
+from pyspark.sql.functions import round as spark_round
 
 # Initialize SparkSession
 spark = SparkSession.builder \
