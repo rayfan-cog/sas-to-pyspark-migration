@@ -1,0 +1,39 @@
+BAD,LOAN,MORTDUE,VALUE,REASON,JOB,YOJ,DEROG,DELINQ,CLAGE,NINQ,CLNO,DEBTINC,APPDATE,CITY,STATE,DIVISION,REGION
+0,10000,59990,100000,HomeImp,Other,5,0,0,100,0,10,20,22040,ltv just under 0.60,Wisconsin,East North Central,Midwest
+0,10000,60000,100000,HomeImp,Other,5,0,0,100,0,10,20,22040,ltv exactly 0.60,Wisconsin,East North Central,Midwest
+0,10000,79990,100000,HomeImp,Other,5,0,0,100,0,10,20,22040,ltv just under 0.80,Wisconsin,East North Central,Midwest
+1,10000,80000,100000,HomeImp,Other,5,0,0,100,0,10,20,22040,ltv exactly 0.80,Wisconsin,East North Central,Midwest
+1,10000,499990,100000,DebtCon,Mgr,5,0,0,100,0,10,20,22040,ltv just under 5,Maryland,South Atlantic,South
+1,10000,500000,100000,DebtCon,Mgr,5,0,0,100,0,10,20,22040,ltv exactly 5 dropped,Maryland,South Atlantic,South
+0,10000,0,100000,DebtCon,Mgr,5,0,0,100,0,10,20,22040,ltv exactly 0 dropped,Maryland,South Atlantic,South
+0,10000,,100000,DebtCon,Mgr,5,0,0,100,0,10,20,22040,mortdue missing dropped,Maryland,South Atlantic,South
+0,10000,50000,0,DebtCon,Office,5,0,0,100,0,10,20,22040,value zero dropped,Ohio,East North Central,Midwest
+0,10000,50000,,DebtCon,Office,5,0,0,100,0,10,20,22040,value missing dropped,Ohio,East North Central,Midwest
+0,,50000,100000,DebtCon,Office,5,0,0,100,0,10,20,22040,loan missing dropped,Ohio,East North Central,Midwest
+0,0,50000,100000,DebtCon,Office,5,0,0,100,0,10,20,22040,loan zero dropped,Ohio,East North Central,Midwest
+0,-5000,50000,100000,DebtCon,Office,5,0,0,100,0,10,20,22040,loan negative dropped,Ohio,East North Central,Midwest
+,10000,50000,100000,DebtCon,ProfExe,5,0,0,100,0,10,20,22040,bad missing dropped,Texas,West South Central,South
+2,10000,50000,100000,DebtCon,ProfExe,5,0,0,100,0,10,20,22040,bad two blank outcome,Texas,West South Central,South
+0,11000,50000,100000,HomeImp,ProfExe,5,0,0,100,0,10,29.999999,22040,debtinc just under 30,Texas,West South Central,South
+0,11000,50000,100000,HomeImp,ProfExe,5,0,0,100,0,10,30,22040,debtinc exactly 30,Texas,West South Central,South
+1,11000,50000,100000,HomeImp,Sales,5,0,0,100,0,10,40,22040,debtinc exactly 40,Florida,South Atlantic,South
+1,11000,50000,100000,HomeImp,Sales,5,0,0,100,0,10,50,22040,debtinc exactly 50,Florida,South Atlantic,South
+1,11000,50000,100000,HomeImp,Sales,5,0,0,100,0,10,,22040,debtinc missing,Florida,South Atlantic,South
+0,12000,50000,100000,DebtCon,Self,5,0,0,100,0,10,25,22040,delinq zero,Nevada,Mountain,West
+0,12000,50000,100000,DebtCon,Self,5,0,1,100,0,10,25,22040,delinq one,Nevada,Mountain,West
+0,12000,50000,100000,DebtCon,Self,5,0,2,100,0,10,25,22040,delinq two,Nevada,Mountain,West
+0,12000,50000,100000,DebtCon,Self,5,0,3,100,0,10,25,22040,delinq three,Nevada,Mountain,West
+1,12000,50000,100000,DebtCon,Self,5,0,4,100,0,10,25,22040,delinq four,Nevada,Mountain,West
+1,12000,50000,100000,DebtCon,Self,5,0,,100,0,10,25,22040,delinq missing,Nevada,Mountain,West
+0,13000,50000,100000,HomeImp,Mgr,5,1,0,100,0,10,25,22040,derog one,Oregon,Pacific,West
+1,13000,50000,100000,HomeImp,Mgr,5,3,0,100,0,10,25,22040,derog three,Oregon,Pacific,West
+1,13000,50000,100000,HomeImp,Mgr,5,,0,100,0,10,25,22040,derog missing,Oregon,Pacific,West
+1,14000,80000,100000,DebtCon,Other,5,0,0,100,0,10,20,22040,risk score exactly three,Illinois,East North Central,Midwest
+1,14000,80000,100000,DebtCon,Other,5,0,0,100,0,10,40,22040,risk score exactly five,Illinois,East North Central,Midwest
+1,14000,80000,100000,DebtCon,Other,5,3,0,100,0,10,40,22040,risk score exactly seven,Illinois,East North Central,Midwest
+1,14000,80000,100000,DebtCon,Other,5,3,4,100,0,10,50,22040,risk score maximum ten,Illinois,East North Central,Midwest
+0,15000,50000,100000,,,5,0,0,100,0,10,25,22040,reason and job blank,New York,Middle Atlantic,Northeast
+0,15000,50000,100000,HomeImp,Other,,0,0,,,10,25,22040,yoj clage ninq missing,New York,Middle Atlantic,Northeast
+0,15000,50000,100000,HomeImp,Other,5,0,0,100,0,10,25,22040,o'brien city,New York,Middle Atlantic,Northeast
+0,15000,50000,100000,HomeImp,Other,5,0,0,100,0,10,25,22040,ST. LOUIS park,Missouri,West North Central,Midwest
+0,15000,50000,100000,HomeImp,Other,5,0,0,100,0,10,25,22040,new york-city,New York,Middle Atlantic,Northeast

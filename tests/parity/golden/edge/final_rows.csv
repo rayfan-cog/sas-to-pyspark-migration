@@ -1,0 +1,30 @@
+LOAN_OUTCOME,CITY,LTV,LOAN_MISS,MORTDUE_MISS,VALUE_MISS,YOJ_MISS,DEROG_MISS,DELINQ_MISS,CLAGE_MISS,NINQ_MISS
+Paid,Ltv Just Under 0.60,0.5999,0,0,0,0,0,0,0,0
+Paid,Ltv Exactly 0.60,0.6,0,0,0,0,0,0,0,0
+Paid,Ltv Just Under 0.80,0.7999,0,0,0,0,0,0,0,0
+Default,Ltv Exactly 0.80,0.8,0,0,0,0,0,0,0,0
+Default,Ltv Just Under 5,4.9999,0,0,0,0,0,0,0,0
+,Bad Two Blank Outcome,0.5,0,0,0,0,0,0,0,0
+Paid,Debtinc Just Under 30,0.5,0,0,0,0,0,0,0,0
+Paid,Debtinc Exactly 30,0.5,0,0,0,0,0,0,0,0
+Default,Debtinc Exactly 40,0.5,0,0,0,0,0,0,0,0
+Default,Debtinc Exactly 50,0.5,0,0,0,0,0,0,0,0
+Default,Debtinc Missing,0.5,0,0,0,0,0,0,0,0
+Paid,Delinq Zero,0.5,0,0,0,0,0,0,0,0
+Paid,Delinq One,0.5,0,0,0,0,0,0,0,0
+Paid,Delinq Two,0.5,0,0,0,0,0,0,0,0
+Paid,Delinq Three,0.5,0,0,0,0,0,0,0,0
+Default,Delinq Four,0.5,0,0,0,0,0,0,0,0
+Default,Delinq Missing,0.5,0,0,0,0,0,1,0,0
+Paid,Derog One,0.5,0,0,0,0,0,0,0,0
+Default,Derog Three,0.5,0,0,0,0,0,0,0,0
+Default,Derog Missing,0.5,0,0,0,0,1,0,0,0
+Default,Risk Score Exactly Three,0.8,0,0,0,0,0,0,0,0
+Default,Risk Score Exactly Five,0.8,0,0,0,0,0,0,0,0
+Default,Risk Score Exactly Seven,0.8,0,0,0,0,0,0,0,0
+Default,Risk Score Maximum Ten,0.8,0,0,0,0,0,0,0,0
+Paid,Reason And Job Blank,0.5,0,0,0,0,0,0,0,0
+Paid,Yoj Clage Ninq Missing,0.5,0,0,0,1,0,0,1,1
+Paid,O'brien City,0.5,0,0,0,0,0,0,0,0
+Paid,St. Louis Park,0.5,0,0,0,0,0,0,0,0
+Paid,New York-City,0.5,0,0,0,0,0,0,0,0

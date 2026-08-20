@@ -10,9 +10,12 @@ DataFrames.
 """
 
 import os
+import re
 
 from pyspark.sql import DataFrame, SparkSession
-from pyspark.sql.functions import col, count, initcap, lit, mean, stddev, when
+from pyspark.sql.functions import col, count, lit, mean, stddev, udf
+from pyspark.sql.functions import sum as spark_sum
+from pyspark.sql.functions import when
 from pyspark.sql.types import (
     DateType,
     DoubleType,
@@ -23,7 +26,9 @@ from pyspark.sql.types import (
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_PATH = os.path.join(PROJECT_ROOT, "data", "home_equity.csv")
+EDGE_DATA_PATH = os.path.join(PROJECT_ROOT, "data", "home_equity_edge.csv")
 GOLDEN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "golden")
+EDGE_GOLDEN_DIR = os.path.join(GOLDEN_DIR, "edge")
 
 # Pinned to mirror SAS 8-byte numerics; inferSchema would give LongType for
 # integral columns and change division/aggregation behaviour.
@@ -68,8 +73,28 @@ def load_home_equity(spark: SparkSession, data_path: str = DATA_PATH) -> DataFra
     return spark.read.csv(data_path, header=True, schema=SCHEMA)
 
 
-def clean(df: DataFrame) -> DataFrame:
-    """sas/02_data_cleaning.sas: derived columns, missing flags, filters."""
+def load_edge_cases(spark: SparkSession) -> DataFrame:
+    """sas/97_load_edge_cases.sas: PROC IMPORT of the synthetic boundary fixture."""
+    return spark.read.csv(EDGE_DATA_PATH, header=True, schema=SCHEMA)
+
+
+# SAS PROPCASE capitalises the first letter after a blank, forward slash,
+# hyphen, open parenthesis, period or tab. Spark's initcap only breaks on
+# whitespace, so it renders "winston-salem" as "Winston-salem" where SAS gives
+# "Winston-Salem" - the edge fixture pins that difference down.
+# pyspark/02_data_cleaning.py currently uses initcap.
+_PROPCASE_WORD = re.compile(r"(^|[ /\-(.\t])([a-z])")
+
+
+@udf(returnType=StringType())
+def propcase(value):
+    if value is None:
+        return None
+    return _PROPCASE_WORD.sub(lambda match: match.group(1) + match.group(2).upper(), value.lower())
+
+
+def clean_derivations(df: DataFrame) -> DataFrame:
+    """sas/02_data_cleaning.sas up to (but excluding) its WHERE filters."""
     cleaned = (
         df.withColumn(
             "LTV",
@@ -82,7 +107,7 @@ def clean(df: DataFrame) -> DataFrame:
             "LOAN_OUTCOME",
             when(col("BAD") == 0, lit("Paid")).when(col("BAD") == 1, lit("Default")),
         )
-        .withColumn("CITY", initcap(col("CITY")))
+        .withColumn("CITY", propcase(col("CITY")))
     )
 
     for column in MISSING_FLAG_COLUMNS:
@@ -90,7 +115,12 @@ def clean(df: DataFrame) -> DataFrame:
             f"{column}_MISS", when(col(column).isNull(), lit(1)).otherwise(lit(0))
         )
 
-    filtered = cleaned.filter(
+    return cleaned
+
+
+def clean(df: DataFrame) -> DataFrame:
+    """sas/02_data_cleaning.sas: derived columns, missing flags, filters."""
+    filtered = clean_derivations(df).filter(
         col("LOAN").isNotNull() & col("VALUE").isNotNull() & col("BAD").isNotNull()
     )
 
@@ -172,22 +202,107 @@ def row_counts(raw: DataFrame, final: DataFrame, risk: DataFrame) -> dict:
     }
 
 
-def _frequency(df: DataFrame, column: str) -> dict:
-    """Counterpart of PROC FREQ output: {level: (frequency, percent)}."""
-    total = df.filter(col(column).isNotNull()).count()
-    rows = df.filter(col(column).isNotNull()).groupBy(column).agg(count(lit(1)).alias("FREQUENCY"))
-    return {
+def frequency(df: DataFrame, column: str) -> dict:
+    """Counterpart of PROC FREQ out=: {level: (frequency, percent)}.
+
+    PROC FREQ reports the missing level with a frequency but no percent, and
+    computes percents over the non-missing rows only; the ``None`` key mirrors
+    that.
+    """
+    present = df.filter(col(column).isNotNull())
+    total = present.count()
+    result = {
         row[column]: (row["FREQUENCY"], 100.0 * row["FREQUENCY"] / total)
+        for row in present.groupBy(column).agg(count(lit(1)).alias("FREQUENCY")).collect()
+    }
+    missing = df.count() - total
+    if missing:
+        result[None] = (missing, None)
+    return result
+
+
+def freq_loan_outcome(final: DataFrame) -> dict:
+    return frequency(final, "LOAN_OUTCOME")
+
+
+def risk_segment_freq(risk: DataFrame) -> dict:
+    return frequency(risk, "RISK_SEGMENT")
+
+
+def crosstab_risk_outcome(risk: DataFrame) -> dict:
+    """Counterpart of TABLES RISK_SEGMENT * LOAN_OUTCOME: {(seg, outcome): (n, pct)}."""
+    present = risk.filter(col("RISK_SEGMENT").isNotNull() & col("LOAN_OUTCOME").isNotNull())
+    total = present.count()
+    rows = present.groupBy("RISK_SEGMENT", "LOAN_OUTCOME").agg(count(lit(1)).alias("FREQUENCY"))
+    return {
+        (row["RISK_SEGMENT"], row["LOAN_OUTCOME"]): (
+            row["FREQUENCY"],
+            100.0 * row["FREQUENCY"] / total,
+        )
         for row in rows.collect()
     }
 
 
-def freq_loan_outcome(final: DataFrame) -> dict:
-    return _frequency(final, "LOAN_OUTCOME")
+def means_by_risk_segment(risk: DataFrame) -> dict:
+    """Counterpart of PROC MEANS with CLASS RISK_SEGMENT, VAR BAD LOAN LTV DEBTINC."""
+    variables = ("BAD", "LOAN", "LTV", "DEBTINC")
+    aggregations = []
+    for variable in variables:
+        aggregations.append(count(col(variable)).alias(f"{variable}_COUNT"))
+        aggregations.append(mean(col(variable)).alias(f"{variable}_MEAN"))
+        aggregations.append(stddev(col(variable)).alias(f"{variable}_STDDEV"))
+
+    rows = (
+        risk.filter(col("RISK_SEGMENT").isNotNull())
+        .groupBy("RISK_SEGMENT")
+        .agg(count(lit(1)).alias("_FREQ_"), *aggregations)
+        .collect()
+    )
+    return {row["RISK_SEGMENT"]: row.asDict() for row in rows}
 
 
-def risk_segment_freq(risk: DataFrame) -> dict:
-    return _frequency(risk, "RISK_SEGMENT")
+def missing_flag_totals(final: DataFrame) -> dict:
+    """Counterpart of PROC MEANS SUM= over the *_MISS flags set by 02."""
+    columns = [f"{column}_MISS" for column in MISSING_FLAG_COLUMNS]
+    row = final.agg(*[spark_sum(col(column)).alias(column) for column in columns]).collect()[0]
+    return {column: int(row[column]) for column in columns}
+
+
+def _sas_percentile(values: list, fraction: float) -> float:
+    """PROC MEANS percentile, PCTLDEF=5 (SAS default).
+
+    With ``np = n * fraction``: an integral ``np`` averages order statistics
+    ``np`` and ``np + 1``, otherwise the ``ceil(np)``-th order statistic is
+    taken. Spark's ``percentile`` interpolates instead, so it cannot be used
+    to reproduce SAS quartiles.
+    """
+    n = len(values)
+    position = n * fraction
+    index = int(position)
+    if position == index:
+        return (values[index - 1] + values[index]) / 2.0
+    return values[index]
+
+
+def numeric_summary(final: DataFrame, columns: tuple) -> dict:
+    """Counterpart of the N/NMISS/MIN/P25/MEDIAN/P75/MAX export in 99."""
+    summary = {}
+    total = final.count()
+    for column in columns:
+        values = sorted(
+            row[column]
+            for row in final.select(column).filter(col(column).isNotNull()).collect()
+        )
+        summary[column] = {
+            "N": len(values),
+            "NMISS": total - len(values),
+            "MIN": values[0],
+            "P25": _sas_percentile(values, 0.25),
+            "MEDIAN": _sas_percentile(values, 0.50),
+            "P75": _sas_percentile(values, 0.75),
+            "MAX": values[-1],
+        }
+    return summary
 
 
 def means_by_outcome(final: DataFrame) -> dict:

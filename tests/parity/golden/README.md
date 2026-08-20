@@ -10,14 +10,41 @@ for engine, site, date, source commit, path adaptations and a review of the run 
 
 ## Files
 
+Production outputs, from `data/home_equity.csv` (5,960 rows) via `sas/99_export_golden.sas`:
+
 | File | Contents | Used by parity tests |
 |---|---|---|
 | `row_counts.csv` | `STAGE`, `N` for `home_equity`, `home_equity_final`, `home_equity_risk` | yes — exact integer equality |
 | `freq_loan_outcome.csv` | `LOAN_OUTCOME`, `FREQUENCY`, `PERCENT` | yes — exact counts, percent to 1e-9 |
-| `risk_segment_freq.csv` | `RISK_SEGMENT`, `FREQUENCY`, `PERCENT` | yes — exact counts, percent to 1e-9 |
-| `means_by_outcome.csv` | `LOAN_OUTCOME`, `_TYPE_`, `_FREQ_`, per-variable `COUNT`/`MEAN`/`STDDEV` | yes — counts exact, statistics to 1e-9 relative |
-| `means_by_outcome_formatted.csv` | the same dataset exactly as `sas/99_export_golden.sas` writes it today | no — reference only |
+| `freq_job.csv` | `JOB` frequencies, including the missing level | yes |
+| `freq_reason.csv` | `REASON` frequencies, including the missing level | yes |
+| `risk_segment_freq.csv` | `RISK_SEGMENT`, `FREQUENCY`, `PERCENT` | yes |
+| `freq_ltv_risk_cat.csv`, `freq_dti_risk_cat.csv`, `freq_delinq_risk_cat.csv` | each risk driver's category frequencies | yes |
+| `freq_risk_score.csv` | the composite `RISK_SCORE` distribution | yes |
+| `crosstab_risk_outcome.csv` | `RISK_SEGMENT` × `LOAN_OUTCOME` cell counts and percents | yes |
+| `means_by_outcome.csv` | per-`LOAN_OUTCOME` `COUNT`/`MEAN`/`STDDEV` | yes — counts exact, statistics to 1e-9 relative |
+| `means_by_risk_segment.csv` | the same statistics classed by `RISK_SEGMENT` | yes |
+| `quantiles_numeric.csv` | `N`/`NMISS`/`MIN`/`P25`/`MEDIAN`/`P75`/`MAX` per numeric column | yes — SAS `PCTLDEF=5` quantiles |
+| `missing_flag_totals.csv` | sums of the `*_MISS` flags set by `02_data_cleaning.sas` | yes |
+| `means_by_outcome_formatted.csv`, `means_by_risk_segment_formatted.csv` | the same datasets with SAS display formats applied | no — reference only |
 | `sas_run.log` | full SAS log of the generating run | no — evidence |
+
+Synthetic boundary outputs in `edge/`, from `data/home_equity_edge.csv` (38 rows) via
+`sas/97_load_edge_cases.sas` + `sas/98_export_golden_edge.sas`:
+
+| File | Contents | Used by parity tests |
+|---|---|---|
+| `edge/row_counts.csv` | rows surviving each stage of the fixture | yes |
+| `edge/clean_rows.csv` | per-row `LTV` and `LOAN_OUTCOME` *before* the WHERE filters | yes — row-level |
+| `edge/final_rows.csv` | per-row `LTV` and every `*_MISS` flag after filtering | yes — row-level |
+| `edge/risk_rows.csv` | per-row risk categories, `RISK_SCORE` and `RISK_SEGMENT` | yes — row-level |
+| `edge/risk_segment_freq.csv` | segment frequencies over the fixture | yes |
+
+The fixture is keyed by `CITY`: each row's `CITY` names the condition it pins down ("ltv
+exactly 0.80", "dti exactly 40", "value zero"), so a row-level mismatch names the rule
+that diverged instead of an aggregate where two errors can cancel out. Aggregates alone
+cannot distinguish a boundary handled as `>=` from one handled as `>`; the fixture puts
+rows exactly on every threshold in `02_data_cleaning.sas` and `04_risk_segmentation.sas`.
 
 ### Why there are two means files
 
@@ -31,9 +58,10 @@ Adding `format _numeric_;` to the exporter would collapse the two.
 ### Log contains errors
 
 The committed log has 5 ERRORs, all in `sas/05_logistic_regression.sas` and all
-downstream of the four exports (which come from datasets built in 01–04). The cause is
+downstream of the exports (which come from datasets built in 01–04). The cause is
 a defect in the checked-in SAS code — `PROC SURVEYSELECT` without `OUTALL` leaves
-`work.train` empty. This does not affect the four reference outputs; see `PROVENANCE.md`.
+`work.train` empty. This does not affect the reference outputs; see `PROVENANCE.md`.
+Nothing in `05` is covered by a golden file, so the model stage is unvalidated.
 
 ## How to regenerate
 
@@ -56,7 +84,17 @@ a defect in the checked-in SAS code — `PROC SURVEYSELECT` without `OUTALL` lea
    %include "sas/99_export_golden.sas";
    ```
 
-3. Copy the CSVs it writes into this directory, refresh `PROVENANCE.md`, and commit
+3. For the boundary fixture, reload and re-run the derivation programs in the same
+   session, then run the edge exporter (it writes into `&outdir./edge`):
+
+   ```sas
+   %include "sas/97_load_edge_cases.sas";
+   %include "sas/02_data_cleaning.sas";
+   %include "sas/04_risk_segmentation.sas";
+   %include "sas/98_export_golden_edge.sas";
+   ```
+
+4. Copy the CSVs it writes into this directory, refresh `PROVENANCE.md`, and commit
    them together.
 
 Regenerate whenever `data/home_equity.csv` changes or any program under `sas/` changes.
