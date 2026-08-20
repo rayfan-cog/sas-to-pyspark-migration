@@ -90,6 +90,9 @@ Or with unittest directly:
 python -m unittest tests.test_pyspark_outputs -v
 ```
 
+`pytest.ini` sets `addopts = -ra`, so every skipped or xfailed test is listed in the
+run summary — a green run can never hide a test that never executed.
+
 ---
 
 ### SAS parity (golden outputs)
@@ -105,8 +108,31 @@ python -m pytest tests/parity -v
 
 `tests/parity/pipeline.py` reimplements loading, cleaning and risk segmentation as
 importable functions, and `tests/parity/test_golden_parity.py` asserts row counts and
-frequencies exactly and continuous statistics to 1e-9. The tests skip themselves if the
-golden files are absent — never hand-write them.
+frequencies exactly and continuous statistics to 1e-9.
+
+#### Missing golden files: skip locally, fail in CI
+
+By default the parity module skips itself when a golden CSV is absent, rather than
+asserting against invented numbers — never hand-write them. Set `REQUIRE_GOLDEN=1` to
+turn that skip into a hard failure, so a run cannot report success while parity was
+never verified:
+
+```bash
+REQUIRE_GOLDEN=1 python -m pytest tests -v -ra
+```
+
+`.github/workflows/tests.yml` exports `REQUIRE_GOLDEN=1` for the whole job, so CI always
+requires the golden set to be present.
+
+#### Golden-set validation
+
+`tests/parity/test_golden_contract.py` runs before the comparisons and checks each
+required golden CSV against the contract in `tests/parity/golden_contract.py`: the file
+exists, is non-empty, parses as CSV, has the expected header, and contains the expected
+key rows (the three `row_counts` stages, both `LOAN_OUTCOME` levels, all four risk
+segments) with no blank cells. A truncated or mis-exported golden set therefore fails as
+a golden-set defect instead of looking like a parity mismatch. The contract mirrors
+[`tests/parity/golden/README.md`](tests/parity/golden/README.md).
 
 ---
 

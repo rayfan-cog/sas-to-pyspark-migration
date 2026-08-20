@@ -2,7 +2,9 @@
 
 The golden CSVs in tests/parity/golden/ were produced by an actual SAS 9.4 run
 (see golden/PROVENANCE.md). If they are absent the whole module skips rather
-than asserting against invented numbers.
+than asserting against invented numbers -- unless REQUIRE_GOLDEN is set, in
+which case the missing set is a hard failure so CI and eval runs cannot report
+green while parity was never verified.
 """
 
 import csv
@@ -11,13 +13,7 @@ import os
 import pytest
 
 from tests.parity import pipeline
-
-GOLDEN_FILES = {
-    "row_counts": "row_counts.csv",
-    "freq_loan_outcome": "freq_loan_outcome.csv",
-    "means_by_outcome": "means_by_outcome.csv",
-    "risk_segment_freq": "risk_segment_freq.csv",
-}
+from tests.parity.golden_contract import GOLDEN_FILES, golden_required
 
 # Counts must match exactly. Continuous statistics are compared with a relative
 # tolerance: SAS and Spark both accumulate in IEEE 754 doubles but in a
@@ -29,6 +25,13 @@ missing_golden = [
     name for name, filename in GOLDEN_FILES.items()
     if not os.path.exists(os.path.join(pipeline.GOLDEN_DIR, filename))
 ]
+
+if missing_golden and golden_required():
+    raise AssertionError(
+        f"REQUIRE_GOLDEN is set but golden SAS outputs are missing: {missing_golden}. "
+        "Parity cannot be verified; see tests/parity/golden/README.md for how to "
+        "regenerate them."
+    )
 
 pytestmark = pytest.mark.skipif(
     bool(missing_golden),
