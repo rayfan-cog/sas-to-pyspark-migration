@@ -44,6 +44,18 @@ def test_summary_by_group_returns_one_row_per_group(finalDf):
     assert "DEBTINC_STDDEV" in summary.columns
 
 
+def test_summary_by_group_excludes_missing_class_by_default(finalDf):
+    groupCols = ["REASON", "LOAN_OUTCOME"]
+    valueCols = ["LOAN", "LTV", "DEBTINC"]
+    summary = summaryByGroup(finalDf, groupCols, valueCols)
+    assert summary.filter("REASON IS NULL").count() == 0
+    nonNullReason = finalDf.filter("REASON IS NOT NULL").count()
+    assert sum(row["LOAN_COUNT"] for row in summary.collect()) == nonNullReason
+    withMissing = summaryByGroup(finalDf, groupCols, valueCols, includeMissing=True)
+    assert withMissing.count() > summary.count()
+    assert withMissing.filter("REASON IS NULL").count() > 0
+
+
 def test_crosstab_default_rate_between_zero_and_one(finalDf):
     tab = crossTabDefaultRate(finalDf, "JOB", "REGION")
     assert tab.filter("DEFAULT_RATE < 0 OR DEFAULT_RATE > 1").count() == 0
