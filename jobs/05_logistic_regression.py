@@ -4,17 +4,13 @@ Purpose: Build a logistic regression model for loan default prediction
 Equivalent SAS Program: sas/05_logistic_regression.sas
 """
 
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, when, lit
-from pyspark.ml.feature import (
-    VectorAssembler, StringIndexer, OneHotEncoder
-)
-from pyspark.ml.classification import LogisticRegression
 from pyspark.ml import Pipeline
-from pyspark.ml.evaluation import (
-    BinaryClassificationEvaluator,
-    MulticlassClassificationEvaluator
-)
+from pyspark.ml.classification import LogisticRegression
+from pyspark.ml.evaluation import BinaryClassificationEvaluator, MulticlassClassificationEvaluator
+from pyspark.ml.feature import OneHotEncoder, StringIndexer, VectorAssembler
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, udf, when
+from pyspark.sql.types import DoubleType
 
 # Initialize SparkSession
 spark = SparkSession.builder \
@@ -153,7 +149,7 @@ lrModel = model.stages[-1]
 # Display model coefficients
 print(f"\nIntercept: {lrModel.intercept:.4f}")
 print(f"Number of features: {len(lrModel.coefficients)}")
-print(f"\nCoefficients (non-zero):")
+print("\nCoefficients (non-zero):")
 featureNames = numericFeatures + ["JOB_VEC", "REASON_VEC"]
 for i, coef in enumerate(lrModel.coefficients):
     if abs(coef) > 0.0001:
@@ -245,15 +241,12 @@ print("Predicted Probability Distribution by Actual Outcome")
 print("=" * 60)
 
 # Extract probability of default (class 1)
-from pyspark.sql.functions import udf
-from pyspark.sql.types import DoubleType
-
 extractProb = udf(lambda v: float(v[1]), DoubleType())
 predictions = predictions.withColumn("pred_prob", extractProb(col("probability")))
 
 predictions.groupBy("label") \
     .agg(
-        {"pred_prob": "count", "pred_prob": "mean"}
+        {"pred_prob": "mean"}
     ) \
     .show()
 
