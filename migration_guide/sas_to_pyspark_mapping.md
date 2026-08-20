@@ -31,7 +31,7 @@ A comprehensive reference table mapping SAS constructs to their PySpark equivale
 | `RETAIN` | Window functions with `lag()` | Use `Window.orderBy()` |
 | `FIRST.` / `LAST.` | Window functions with `row_number()` | Partition and order window |
 | `BY` group processing | `.groupBy()` | Group-level operations |
-| `MERGE` (join) | `.join()` | Specify join type and condition |
+| `MERGE` (join) | `.join()` | Specify join type and condition; **not** equivalent for many-to-many keys — see policy note below |
 | `OUTPUT` | `.union()` / write operations | Append rows or write results |
 | `propcase()` | `initcap()` | From `pyspark.sql.functions` |
 | `substr()` | `substring()` | From `pyspark.sql.functions` |
@@ -40,6 +40,19 @@ A comprehensive reference table mapping SAS constructs to their PySpark equivale
 | `input()` | `.cast()` | Type conversion |
 | `put()` | `.cast("string")` | Convert to string |
 | Missing value (`.`) | `None` / `null` | Use `.isNull()` / `.isNotNull()` |
+
+### Policy note: `MERGE ... BY` is not a SQL join
+
+For one-to-one and one-to-many keys, `MERGE ... BY` behaves like a full outer join.
+For **many-to-many** keys it does not: a SQL join produces the Cartesian product of
+the matching rows (n × m), while the DATA step MERGE pairs rows positionally within
+the BY group and retains the last value from the shorter side (max(n, m) rows).
+No program in this codebase currently uses `MERGE`, so no translation exists here —
+but as policy, any future SAS program containing `MERGE ... BY` must first be checked
+for many-to-many keys (e.g. a `PROC SQL` count of duplicate BY values on both inputs).
+If many-to-many pairings exist, do not translate to `.join()` blindly; replicate the
+positional pairing with `row_number()` over the BY key on both sides and join on
+(key, row_number), then document the choice in `docs/deviations.md`.
 
 ## Statistical Procedures
 
@@ -51,7 +64,7 @@ A comprehensive reference table mapping SAS constructs to their PySpark equivale
 | `PROC TABULATE` | `.groupBy().pivot().agg()` | Pivot for cross-tabulation layout |
 | `PROC SQL` | `spark.sql()` | Full SQL support via Spark SQL |
 | `PROC SORT` | `.orderBy()` / `.sort()` | Specify ascending/descending |
-| `PROC SORT NODUPKEY` | `.dropDuplicates()` | Deduplicate by specified columns |
+| `PROC SORT NODUPKEY` | `.dropDuplicates()` | Not equivalent: NODUPKEY keeps the *first* row in sort order; `dropDuplicates()` keeps an arbitrary row per key. Force determinism with `row_number()` over an explicit ordering when the kept row matters |
 | `PROC TRANSPOSE` | `.pivot()` / stack patterns | Wide-to-long or long-to-wide |
 | `PROC CONTENTS` | `.printSchema()` / `.dtypes` | Schema and metadata inspection |
 | `PROC PRINT` | `.show()` | Display rows |

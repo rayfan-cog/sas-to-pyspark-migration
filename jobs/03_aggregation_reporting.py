@@ -5,10 +5,10 @@ Equivalent SAS Program: sas/03_aggregation_reporting.sas
 """
 
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import (
-    col, count, mean, stddev, min as spark_min, max as spark_max,
-    round as spark_round, lit, when, initcap
-)
+from pyspark.sql.functions import col, count, lit, mean, stddev, when
+from pyspark.sql.functions import max as spark_max
+from pyspark.sql.functions import min as spark_min
+from pyspark.sql.functions import round as spark_round
 
 # Initialize SparkSession
 spark = SparkSession.builder \

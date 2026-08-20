@@ -21,11 +21,11 @@ Built for teams evaluating a move from SAS to open-source distributed computing 
 
 | # | SAS Program | PySpark Script | Description |
 |---|---|---|---|
-| 1 | `sas/01_data_loading.sas` | `pyspark/01_data_loading.py` | Load CSV, apply labels/formats, inspect metadata, preview data |
-| 2 | `sas/02_data_cleaning.sas` | `pyspark/02_data_cleaning.py` | Derived columns (LTV, loan outcome), missing value handling, outlier detection |
-| 3 | `sas/03_aggregation_reporting.sas` | `pyspark/03_aggregation_reporting.py` | Frequency tables, summary statistics, cross-tabulation, SQL queries |
-| 4 | `sas/04_risk_segmentation.sas` | `pyspark/04_risk_segmentation.py` | Risk bucketing (LTV, DTI, delinquency), composite scoring, segment analysis |
-| 5 | `sas/05_logistic_regression.sas` | `pyspark/05_logistic_regression.py` | Logistic regression with feature engineering, model evaluation, AUC/confusion matrix |
+| 1 | `sas/01_data_loading.sas` | `jobs/01_data_loading.py` | Load CSV, apply labels/formats, inspect metadata, preview data |
+| 2 | `sas/02_data_cleaning.sas` | `jobs/02_data_cleaning.py` | Derived columns (LTV, loan outcome), missing value handling, outlier detection |
+| 3 | `sas/03_aggregation_reporting.sas` | `jobs/03_aggregation_reporting.py` | Frequency tables, summary statistics, cross-tabulation, SQL queries |
+| 4 | `sas/04_risk_segmentation.sas` | `jobs/04_risk_segmentation.py` | Risk bucketing (LTV, DTI, delinquency), composite scoring, segment analysis |
+| 5 | `sas/05_logistic_regression.sas` | `jobs/05_logistic_regression.py` | Logistic regression with feature engineering, model evaluation, AUC/confusion matrix |
 
 ---
 
@@ -62,7 +62,7 @@ The [`migration_guide/`](migration_guide/) folder contains detailed reference do
 ### Installation
 
 ```bash
-pip install pyspark
+pip install -r requirements.txt
 ```
 
 ### Running the PySpark Scripts
@@ -71,11 +71,11 @@ Each script is self-contained and can be run independently:
 
 ```bash
 # From the repository root directory
-python pyspark/01_data_loading.py
-python pyspark/02_data_cleaning.py
-python pyspark/03_aggregation_reporting.py
-python pyspark/04_risk_segmentation.py
-python pyspark/05_logistic_regression.py
+python jobs/01_data_loading.py
+python jobs/02_data_cleaning.py
+python jobs/03_aggregation_reporting.py
+python jobs/04_risk_segmentation.py
+python jobs/05_logistic_regression.py
 ```
 
 ### Running the Tests
@@ -153,7 +153,7 @@ sas-to-pyspark-migration/
 │   ├── 04_risk_segmentation.sas               # PROC FORMAT, risk scoring, PROC FREQ
 │   ├── 05_logistic_regression.sas             # PROC LOGISTIC, stepwise, ROC/AUC
 │   └── 99_export_golden.sas                   # Exports golden outputs for parity testing
-├── pyspark/
+├── jobs/
 │   ├── 01_data_loading.py                     # spark.read.csv, printSchema, show
 │   ├── 02_data_cleaning.py                    # withColumn, when/otherwise, na.fill, filter
 │   ├── 03_aggregation_reporting.py            # groupBy, agg, crosstab, spark.sql
