@@ -3,7 +3,10 @@
 The PySpark migration is only "correct" against numbers SAS actually produced. These
 files are that reference set — never hand-write or estimate the values. If a file is
 missing, `tests/parity/test_golden_parity.py` skips itself rather than asserting
-against invented numbers.
+against invented numbers — unless `REQUIRE_GOLDEN=1` is set (as CI does), in which case
+the missing set is a hard failure. `tests/parity/test_golden_contract.py` additionally
+validates every file below against the header and key rows listed here before the
+comparisons run.
 
 The committed set was produced by a real SAS 9.4 run; see [`PROVENANCE.md`](PROVENANCE.md)
 for engine, site, date, source commit, path adaptations and a review of the run log.
