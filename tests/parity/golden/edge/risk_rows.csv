@@ -1,0 +1,30 @@
+DEROG,DELINQ,DEBTINC,CITY,LTV,LTV_RISK_CAT,DTI_RISK_CAT,DELINQ_RISK_CAT,RISK_SCORE,RISK_SEGMENT
+0,0,20,Ltv Just Under 0.60,0.5999,Low,Low,None,0,Low Risk
+0,0,20,Ltv Exactly 0.60,0.6,Medium,Low,None,1.5,Low Risk
+0,0,20,Ltv Just Under 0.80,0.7999,Medium,Low,None,1.5,Low Risk
+0,0,20,Ltv Exactly 0.80,0.8,High,Low,None,3,Medium Risk
+0,0,20,Ltv Just Under 5,4.9999,High,Low,None,3,Medium Risk
+0,0,20,Bad Two Blank Outcome,0.5,Low,Low,None,0,Low Risk
+0,0,29.999999,Debtinc Just Under 30,0.5,Low,Low,None,0,Low Risk
+0,0,30,Debtinc Exactly 30,0.5,Low,Medium,None,1,Low Risk
+0,0,40,Debtinc Exactly 40,0.5,Low,High,None,2,Low Risk
+0,0,50,Debtinc Exactly 50,0.5,Low,Very High,None,3,Medium Risk
+0,0,,Debtinc Missing,0.5,Low,,None,0,Low Risk
+0,0,25,Delinq Zero,0.5,Low,Low,None,0,Low Risk
+0,1,25,Delinq One,0.5,Low,Low,Low,0.5,Low Risk
+0,2,25,Delinq Two,0.5,Low,Low,Medium,1.5,Low Risk
+0,3,25,Delinq Three,0.5,Low,Low,Medium,1.5,Low Risk
+0,4,25,Delinq Four,0.5,Low,Low,High,2,Low Risk
+0,,25,Delinq Missing,0.5,Low,Low,,0,Low Risk
+1,0,25,Derog One,0.5,Low,Low,None,1,Low Risk
+3,0,25,Derog Three,0.5,Low,Low,None,2,Low Risk
+,0,25,Derog Missing,0.5,Low,Low,None,0,Low Risk
+0,0,20,Risk Score Exactly Three,0.8,High,Low,None,3,Medium Risk
+0,0,40,Risk Score Exactly Five,0.8,High,High,None,5,High Risk
+3,0,40,Risk Score Exactly Seven,0.8,High,High,None,7,Very High Risk
+3,4,50,Risk Score Maximum Ten,0.8,High,Very High,High,10,Very High Risk
+0,0,25,Reason And Job Blank,0.5,Low,Low,None,0,Low Risk
+0,0,25,Yoj Clage Ninq Missing,0.5,Low,Low,None,0,Low Risk
+0,0,25,O'brien City,0.5,Low,Low,None,0,Low Risk
+0,0,25,St. Louis Park,0.5,Low,Low,None,0,Low Risk
+0,0,25,New York-City,0.5,Low,Low,None,0,Low Risk

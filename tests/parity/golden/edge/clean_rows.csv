@@ -1,0 +1,39 @@
+LOAN_OUTCOME,BAD,LOAN,MORTDUE,VALUE,DEROG,DELINQ,DEBTINC,CITY,LTV
+Paid,0,10000,59990,100000,0,0,20,Ltv Just Under 0.60,0.5999
+Paid,0,10000,60000,100000,0,0,20,Ltv Exactly 0.60,0.6
+Paid,0,10000,79990,100000,0,0,20,Ltv Just Under 0.80,0.7999
+Default,1,10000,80000,100000,0,0,20,Ltv Exactly 0.80,0.8
+Default,1,10000,499990,100000,0,0,20,Ltv Just Under 5,4.9999
+Default,1,10000,500000,100000,0,0,20,Ltv Exactly 5 Dropped,5
+Paid,0,10000,0,100000,0,0,20,Ltv Exactly 0 Dropped,0
+Paid,0,10000,,100000,0,0,20,Mortdue Missing Dropped,
+Paid,0,10000,50000,0,0,0,20,Value Zero Dropped,
+Paid,0,10000,50000,,0,0,20,Value Missing Dropped,
+Paid,0,,50000,100000,0,0,20,Loan Missing Dropped,0.5
+Paid,0,0,50000,100000,0,0,20,Loan Zero Dropped,0.5
+Paid,0,-5000,50000,100000,0,0,20,Loan Negative Dropped,0.5
+,,10000,50000,100000,0,0,20,Bad Missing Dropped,0.5
+,2,10000,50000,100000,0,0,20,Bad Two Blank Outcome,0.5
+Paid,0,11000,50000,100000,0,0,29.999999,Debtinc Just Under 30,0.5
+Paid,0,11000,50000,100000,0,0,30,Debtinc Exactly 30,0.5
+Default,1,11000,50000,100000,0,0,40,Debtinc Exactly 40,0.5
+Default,1,11000,50000,100000,0,0,50,Debtinc Exactly 50,0.5
+Default,1,11000,50000,100000,0,0,,Debtinc Missing,0.5
+Paid,0,12000,50000,100000,0,0,25,Delinq Zero,0.5
+Paid,0,12000,50000,100000,0,1,25,Delinq One,0.5
+Paid,0,12000,50000,100000,0,2,25,Delinq Two,0.5
+Paid,0,12000,50000,100000,0,3,25,Delinq Three,0.5
+Default,1,12000,50000,100000,0,4,25,Delinq Four,0.5
+Default,1,12000,50000,100000,0,,25,Delinq Missing,0.5
+Paid,0,13000,50000,100000,1,0,25,Derog One,0.5
+Default,1,13000,50000,100000,3,0,25,Derog Three,0.5
+Default,1,13000,50000,100000,,0,25,Derog Missing,0.5
+Default,1,14000,80000,100000,0,0,20,Risk Score Exactly Three,0.8
+Default,1,14000,80000,100000,0,0,40,Risk Score Exactly Five,0.8
+Default,1,14000,80000,100000,3,0,40,Risk Score Exactly Seven,0.8
+Default,1,14000,80000,100000,3,4,50,Risk Score Maximum Ten,0.8
+Paid,0,15000,50000,100000,0,0,25,Reason And Job Blank,0.5
+Paid,0,15000,50000,100000,0,0,25,Yoj Clage Ninq Missing,0.5
+Paid,0,15000,50000,100000,0,0,25,O'brien City,0.5
+Paid,0,15000,50000,100000,0,0,25,St. Louis Park,0.5
+Paid,0,15000,50000,100000,0,0,25,New York-City,0.5
