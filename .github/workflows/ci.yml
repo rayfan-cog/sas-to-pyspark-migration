@@ -24,7 +24,4 @@ jobs:
           cache: pip
       - run: pip install -r requirements.txt
       - run: ruff check src tests jobs
-      # tests/test_pyspark_outputs.py is the legacy demo suite with a known-red
-      # baseline (see Task 1 Step 1); it is deleted in Task 8, which also removes
-      # this --ignore so the full tree gates from then on.
-      - run: python -m pytest tests -v --ignore=tests/test_pyspark_outputs.py
+      - run: python -m pytest tests -v

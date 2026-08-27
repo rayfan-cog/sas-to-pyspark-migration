@@ -2,11 +2,46 @@
 
 A comprehensive reference table mapping SAS constructs to their PySpark equivalents.
 
+## Where the code lives now
+
+The generic tables below cover SAS constructs in general. For the constructs actually
+used by the programs in `sas/`, this table points at the function in `src/homeequity/`
+that implements them; the `jobs/` scripts only call these functions and print the
+results, so they are never the place to look for logic.
+
+| SAS construct (program) | Implemented by | Job that calls it |
+|---|---|---|
+| `proc import` + `guessingrows` (sas/01) | `homeequity.schema.HOME_EQUITY_SCHEMA`, `homeequity.io.loadHomeEquity` | `jobs/01_data_loading.py` |
+| `proc datasets ... label` / `format` (sas/01) | `homeequity.metadata.COLUMN_LABELS`, `COLUMN_FORMATS`, `applyLabels` | `jobs/01_data_loading.py` |
+| `proc contents` / `proc print` (sas/01) | `DataFrame.printSchema()` / `DataFrame.show()` | `jobs/01_data_loading.py` |
+| DATA step derived columns (LTV, LOAN_OUTCOME, `propcase`) (sas/02) | `homeequity.transforms.cleaning.addDerivedColumns` | `jobs/02_data_cleaning.py` |
+| `array` missing-flag do-loop (sas/02) | `homeequity.transforms.cleaning.addMissingFlags` | `jobs/02_data_cleaning.py` |
+| `if X ne .` null filters (sas/02) | `homeequity.transforms.cleaning.filterCriticalNulls` | `jobs/02_data_cleaning.py` |
+| Outlier subsetting `if` statements (sas/02) | `homeequity.transforms.cleaning.removeOutliers` | `jobs/02_data_cleaning.py` |
+| `work.home_equity_final` (sas/02 output) | `homeequity.transforms.cleaning.buildFinalDataset` | jobs 02-05 |
+| `proc freq ... / nocum` (sas/03, sas/04) | `homeequity.reporting.frequencyTable` | `jobs/03`, `jobs/04` |
+| `proc means ... class ...` (sas/02, sas/03, sas/04) | `homeequity.reporting.summaryByGroup` | `jobs/02`, `jobs/03`, `jobs/04` |
+| `proc tabulate` (sas/03) | `homeequity.reporting.crossTabDefaultRate` | `jobs/03_aggregation_reporting.py` |
+| `proc sql outobs=10 ... having` (sas/03) | `homeequity.reporting.topStatesByAverageLoan` | `jobs/03_aggregation_reporting.py` |
+| `proc format value ltv_risk / dti_risk / delinq_risk` (sas/04) | `homeequity.transforms.risk.addRiskCategories` | `jobs/04_risk_segmentation.py` |
+| Composite `RISK_SCORE` accumulation (sas/04) | `homeequity.transforms.risk.addRiskScore` | `jobs/04_risk_segmentation.py` |
+| `RISK_SEGMENT` assignment (sas/04) | `homeequity.transforms.risk.addRiskSegment` | `jobs/04_risk_segmentation.py` |
+| `data work.model_data` complete cases (sas/05) | `homeequity.model.logistic.prepareModelData` | `jobs/05_logistic_regression.py` |
+| `proc surveyselect method=srs samprate=0.7` (sas/05) | `homeequity.model.logistic.splitTrainValid` | `jobs/05_logistic_regression.py` |
+| `proc logistic class ... / param=ref` + `model` (sas/05) | `homeequity.model.logistic.buildPipeline` | `jobs/05_logistic_regression.py` |
+| `proc plm restore=` scoring (sas/05) | `PipelineModel.transform` | `jobs/05_logistic_regression.py` |
+| `roc;` / `proc freq tables BAD*PREDICTED_BAD` (sas/05) | `homeequity.model.logistic.evaluateModel`, `confusionMatrix` | `jobs/05_logistic_regression.py` |
+| SAS session start | `homeequity.session.getSparkSession` | every job |
+
+Where a translation is not exact, the reason and its impact are recorded as a row in
+[`docs/deviations.md`](../docs/deviations.md) (for example D-005 for `proc tabulate`,
+D-016 for missing class values in `proc freq`, D-011 for `param=ref` reference levels).
+
 ## Data Access & I/O
 
 | SAS Construct | PySpark Equivalent | Notes |
 |---|---|---|
-| `PROC IMPORT` (CSV) | `spark.read.csv()` | Use `header=True, inferSchema=True` |
+| `PROC IMPORT` (CSV) | `spark.read.csv()` | Prefer `header=True` with an explicit `schema=` over `inferSchema=True`, so types cannot change with the data (D-003) |
 | `PROC IMPORT` (Excel) | `spark.read.format("com.crealytics.spark.excel")` | Requires external package |
 | `PROC IMPORT` (database) | `spark.read.jdbc()` | Provide JDBC URL and connection properties |
 | `PROC EXPORT` (CSV) | `df.write.csv()` | Use `header=True, mode="overwrite"` |
@@ -26,7 +61,7 @@ A comprehensive reference table mapping SAS constructs to their PySpark equivale
 | `RENAME` | `.withColumnRenamed()` | Rename one column at a time |
 | `LENGTH` statement | `.withColumn(col.cast())` | Cast to appropriate type |
 | `FORMAT` / `INFORMAT` | No direct equivalent | Handle in display or write logic |
-| `LABEL` | No direct equivalent | Document in metadata dictionary |
+| `LABEL` | No direct equivalent | Store as column `comment` metadata (`homeequity.metadata.applyLabels`, D-002) |
 | `ARRAY` processing | List comprehension + `withColumn` loop | Iterate over column list |
 | `RETAIN` | Window functions with `lag()` | Use `Window.orderBy()` |
 | `FIRST.` / `LAST.` | Window functions with `row_number()` | Partition and order window |
@@ -60,7 +95,7 @@ positional pairing with `row_number()` over the BY key on both sides and join on
 |---|---|---|
 | `PROC MEANS` | `.groupBy().agg()` / `.describe()` | Use `mean`, `stddev`, `min`, `max` from functions |
 | `PROC SUMMARY` | `.groupBy().agg()` | Same as PROC MEANS equivalent |
-| `PROC FREQ` | `.groupBy().count()` / `.crosstab()` | For frequency tables and cross-tabs |
+| `PROC FREQ` | `.groupBy().count()` / `.crosstab()` | For frequency tables and cross-tabs; FREQ drops missing class values unless `MISSING` is given, `groupBy` does not (D-016) |
 | `PROC TABULATE` | `.groupBy().pivot().agg()` | Pivot for cross-tabulation layout |
 | `PROC SQL` | `spark.sql()` | Full SQL support via Spark SQL |
 | `PROC SORT` | `.orderBy()` / `.sort()` | Specify ascending/descending |
@@ -70,7 +105,7 @@ positional pairing with `row_number()` over the BY key on both sides and join on
 | `PROC PRINT` | `.show()` | Display rows |
 | `PROC UNIVARIATE` | `.describe()` + `.approxQuantile()` | Combine for full distribution stats |
 | `PROC CORR` | `Correlation.corr()` | From `pyspark.ml.stat` |
-| `PROC FORMAT` | `when().otherwise()` or UDFs | Map value ranges to labels |
+| `PROC FORMAT` | `when().otherwise()` or UDFs | Map value ranges to labels; prefer `when()` chains over UDFs (`homeequity.transforms.risk.addRiskCategories`) |
 
 ## Machine Learning
 
