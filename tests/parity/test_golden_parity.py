@@ -1,8 +1,11 @@
-"""Parity harness: PySpark pipeline vs the golden SAS outputs.
+"""Parity harness: the `homeequity` package vs the golden SAS outputs.
 
 The golden CSVs in tests/parity/golden/ were produced by an actual SAS 9.4 run
-(see golden/PROVENANCE.md). If they are absent the whole module skips rather
+(see golden/PROVENANCE.md). If they are absent the affected tests skip rather
 than asserting against invented numbers.
+
+Every number on the PySpark side comes from `src/homeequity` via
+`tests/parity/pipeline.py`; no transformation logic lives in this tree.
 """
 
 import csv
@@ -15,6 +18,7 @@ from tests.parity import pipeline
 GOLDEN_FILES = {
     "row_counts": "row_counts.csv",
     "freq_loan_outcome": "freq_loan_outcome.csv",
+    "freq_job": "freq_job.csv",
     "means_by_outcome": "means_by_outcome.csv",
     "risk_segment_freq": "risk_segment_freq.csv",
 }
@@ -25,10 +29,12 @@ GOLDEN_FILES = {
 STAT_RTOL = 1e-9
 PERCENT_ABSTOL = 1e-9
 
-missing_golden = [
-    name for name, filename in GOLDEN_FILES.items()
-    if not os.path.exists(os.path.join(pipeline.GOLDEN_DIR, filename))
-]
+
+def goldenPath(name: str) -> str:
+    return os.path.join(pipeline.GOLDEN_DIR, GOLDEN_FILES[name])
+
+
+missing_golden = [name for name in GOLDEN_FILES if not os.path.exists(goldenPath(name))]
 
 pytestmark = pytest.mark.skipif(
     bool(missing_golden),
@@ -37,21 +43,19 @@ pytestmark = pytest.mark.skipif(
 
 
 def read_golden(name: str) -> list:
-    path = os.path.join(pipeline.GOLDEN_DIR, GOLDEN_FILES[name])
+    path = goldenPath(name)
+    if not os.path.exists(path):
+        pytest.skip(
+            f"golden file {GOLDEN_FILES[name]} absent: it requires a SAS rerun of 01-05 plus "
+            "sas/99_export_golden.sas; see tests/parity/golden/README.md"
+        )
     with open(path, newline="", encoding="utf-8") as handle:
         return list(csv.DictReader(handle))
 
 
 @pytest.fixture(scope="module")
-def spark():
-    session = pipeline.get_spark()
-    yield session
-    session.stop()
-
-
-@pytest.fixture(scope="module")
-def frames(spark):
-    raw = pipeline.load_home_equity(spark).cache()
+def frames(rawDf):
+    raw = rawDf
     final = pipeline.clean(raw).cache()
     risk = pipeline.segment(final).cache()
     return raw, final, risk
@@ -59,6 +63,7 @@ def frames(spark):
 
 def test_row_counts(frames):
     raw, final, risk = frames
+
     expected = {row["STAGE"]: int(row["N"]) for row in read_golden("row_counts")}
     assert pipeline.row_counts(raw, final, risk) == expected
 
@@ -73,6 +78,30 @@ def test_freq_loan_outcome(frames):
         frequency, percent = actual[row["LOAN_OUTCOME"]]
         assert frequency == int(row["FREQUENCY"])
         assert percent == pytest.approx(float(row["PERCENT"]), abs=PERCENT_ABSTOL)
+
+
+def test_job_frequencies_match_sas(frames):
+    # JOB carries nulls, so this comparison fails if the PySpark side counts the
+    # null group PROC FREQ excludes from its percentages (D-016), or if untrimmed
+    # JOB values split a category (D-013).
+    golden = read_golden("freq_job")
+    categories = [row for row in golden if row["JOB"]]
+    missing = [row for row in golden if not row["JOB"]]
+    _, final, _ = frames
+    actual = pipeline.freq_job(final)
+
+    assert None not in actual
+    assert set(actual) == {row["JOB"] for row in categories}
+    for row in categories:
+        frequency, percent = actual[row["JOB"]]
+        assert frequency == int(row["FREQUENCY"])
+        assert percent == pytest.approx(float(row["PERCENT"]), abs=PERCENT_ABSTOL)
+    assert sum(frequency for frequency, _ in actual.values()) == final.filter(
+        "JOB IS NOT NULL"
+    ).count()
+    # PROC FREQ's out= dataset keeps one missing-class row with a blank PERCENT
+    # (it is excluded from the percentage base); the PySpark table drops it.
+    assert [int(row["FREQUENCY"]) for row in missing] == [final.filter("JOB IS NULL").count()]
 
 
 def test_risk_segment_freq(frames):

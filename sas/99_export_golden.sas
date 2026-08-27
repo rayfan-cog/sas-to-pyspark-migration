@@ -4,7 +4,7 @@
 /*  Run after 01-05 in the same SAS session, so the work library still       */
 /*  holds home_equity, home_equity_final, and home_equity_risk.              */
 /*                                                                           */
-/*  Copy the four CSVs it writes into tests/parity/golden/ and see           */
+/*  Copy the CSVs it writes into tests/parity/golden/ and see                */
 /*  tests/parity/golden/README.md for the checklist.                         */
 /*******************************************************************************/
 
@@ -23,6 +23,13 @@ quit;
 /* Frequency of the derived loan outcome */
 proc freq data=work.home_equity_final noprint;
     tables LOAN_OUTCOME / out=work.freq_loan_outcome (rename=(COUNT=FREQUENCY));
+run;
+
+/* JOB has ~279 missing values in the raw extract, so this table exercises the */
+/* missing-class divergence: PROC FREQ drops them by default (no MISSING       */
+/* option here), and the PySpark side must too.                                */
+proc freq data=work.home_equity_final noprint;
+    tables JOB / out=work.freq_job (rename=(COUNT=FREQUENCY));
 run;
 
 /* Group statistics that the PySpark summaryByGroup helper must reproduce */
@@ -47,5 +54,6 @@ run;
 
 %dump(row_counts);
 %dump(freq_loan_outcome);
+%dump(freq_job);
 %dump(means_by_outcome);
 %dump(risk_segment_freq);
