@@ -1,0 +1,12 @@
+RISK_SEGMENT,LOAN_OUTCOME,FREQUENCY,PERCENT
+High Risk,,11,
+High Risk,Default,881,6.890348819
+High Risk,Paid,2931,22.923510089
+Low Risk,,13,
+Low Risk,Default,620,4.8490536524
+Low Risk,Paid,2087,16.322540278
+Medium Risk,,16,
+Medium Risk,Default,930,7.2735804786
+Medium Risk,Paid,3232,25.277647427
+Very High Risk,Default,492,3.8479587048
+Very High Risk,Paid,1613,12.615360551
