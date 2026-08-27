@@ -124,6 +124,14 @@ Paid,1,4340,4340,3903,19000.714286,33.734581815,11019.700641,6.5059836869
 Consider adding `format _numeric_;` to the exporter so the committed golden file is
 comparison-grade.
 
+Even with formats stripped, `PROC EXPORT` writes numerics with `BEST12.`, i.e. at most
+twelve *characters*, so the precision retained is absolute rather than relative: the scale
+fixture's `LTV_MIN` is written as `0.002336697`, which is 3.7e-9 away in relative terms
+from the double the pipeline computes (8.7e-12 in absolute terms). The parity harness
+therefore compares quantiles against the last decimal place the literal carries as well as
+the 1e-9 relative tolerance; this is a golden-file precision limit, not a SAS-vs-Spark
+divergence.
+
 ## Divergence this run surfaced
 
 The fixture row `CITY = "new york-city"` is `New York-City` in the SAS output: PROPCASE

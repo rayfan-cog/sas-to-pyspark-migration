@@ -27,8 +27,12 @@ from pyspark.sql.types import (
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DATA_PATH = os.path.join(PROJECT_ROOT, "data", "home_equity.csv")
 EDGE_DATA_PATH = os.path.join(PROJECT_ROOT, "data", "home_equity_edge.csv")
+SCALE_DATA_PATH = os.path.join(PROJECT_ROOT, "data", "home_equity_scale.csv")
+MISSING_DATA_PATH = os.path.join(PROJECT_ROOT, "data", "home_equity_missing.csv")
 GOLDEN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "golden")
 EDGE_GOLDEN_DIR = os.path.join(GOLDEN_DIR, "edge")
+SCALE_GOLDEN_DIR = os.path.join(GOLDEN_DIR, "scale")
+MISSING_GOLDEN_DIR = os.path.join(GOLDEN_DIR, "missing")
 
 # Pinned to mirror SAS 8-byte numerics; inferSchema would give LongType for
 # integral columns and change division/aggregation behaviour.
@@ -78,6 +82,16 @@ def load_edge_cases(spark: SparkSession) -> DataFrame:
     return spark.read.csv(EDGE_DATA_PATH, header=True, schema=SCHEMA)
 
 
+def load_scale(spark: SparkSession) -> DataFrame:
+    """sas/95_load_mock_scale.sas: PROC IMPORT of the 20,000-row scale fixture."""
+    return spark.read.csv(SCALE_DATA_PATH, header=True, schema=SCHEMA)
+
+
+def load_missing(spark: SparkSession) -> DataFrame:
+    """sas/93_load_mock_missing.sas: PROC IMPORT of the missingness fixture."""
+    return spark.read.csv(MISSING_DATA_PATH, header=True, schema=SCHEMA)
+
+
 # SAS PROPCASE capitalises the first letter after a blank, forward slash,
 # hyphen, open parenthesis, period or tab. Spark's initcap only breaks on
 # whitespace, so it renders "winston-salem" as "Winston-salem" where SAS gives
@@ -118,13 +132,16 @@ def clean_derivations(df: DataFrame) -> DataFrame:
     return cleaned
 
 
-def clean(df: DataFrame) -> DataFrame:
-    """sas/02_data_cleaning.sas: derived columns, missing flags, filters."""
-    filtered = clean_derivations(df).filter(
+def clean_filtered(df: DataFrame) -> DataFrame:
+    """WORK.HOME_EQUITY_FILTERED: 02's critical-field filter, before the outlier cut."""
+    return clean_derivations(df).filter(
         col("LOAN").isNotNull() & col("VALUE").isNotNull() & col("BAD").isNotNull()
     )
 
-    return filtered.filter(
+
+def clean(df: DataFrame) -> DataFrame:
+    """sas/02_data_cleaning.sas: derived columns, missing flags, filters."""
+    return clean_filtered(df).filter(
         (col("LTV") > 0) & (col("LTV") < 5) & (col("LOAN") > 0) & (col("VALUE") > 0)
     )
 
@@ -197,6 +214,24 @@ def row_counts(raw: DataFrame, final: DataFrame, risk: DataFrame) -> dict:
     """Counterpart of WORK.ROW_COUNTS in sas/99_export_golden.sas."""
     return {
         "home_equity": raw.count(),
+        "home_equity_final": final.count(),
+        "home_equity_risk": risk.count(),
+    }
+
+
+def stage_counts(raw: DataFrame, final: DataFrame, risk: DataFrame) -> dict:
+    """Counts for every WORK dataset 02 builds, as the scale/missing exporters do.
+
+    02 derives columns without dropping rows (home_equity_clean) and flags
+    missings without dropping rows (home_equity_imputed), so both stages have
+    the raw count; ``clean_filtered`` is home_equity_filtered.
+    """
+    raw_count = raw.count()
+    return {
+        "home_equity": raw_count,
+        "home_equity_clean": raw_count,
+        "home_equity_imputed": raw_count,
+        "home_equity_filtered": clean_filtered(raw).count(),
         "home_equity_final": final.count(),
         "home_equity_risk": risk.count(),
     }
