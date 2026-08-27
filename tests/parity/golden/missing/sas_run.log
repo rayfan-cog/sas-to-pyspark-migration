@@ -1,0 +1,1772 @@
+ 
+ 1          OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ 68         
+ 69         options source2;
+ 70         %let root = /home/ODAUSER;
+ 71         %let rc = %sysfunc(dcreate(missing, &root./golden));
+ 72         %put NOTE: DCREATE_RC=&rc.;
+ NOTE: DCREATE_RC=/home/ODAUSER/golden/missing
+ 73         %include "&root./93_load_mock_missing.sas";
+ NOTE: %INCLUDE (level 1) file /home/ODAUSER/93_load_mock_missing.sas is file /home/ODAUSER/93_load_mock_missing.sas.
+ 74        +/*******************************************************************************/
+ 75        +/*  SAS Program: 93_load_mock_missing.sas                                     */
+ 76        +/*  Purpose: Load the generated missingness fixture into work.home_equity so  */
+ 77        +/*           02_data_cleaning.sas and 04_risk_segmentation.sas can be re-run  */
+ 78        +/*           over it, producing a missingness-focused golden set.             */
+ 79        +/*                                                                            */
+ 80        +/*  data/home_equity_missing.csv (built by tools/generate_mock_missing.py)    */
+ 81        +/*  enumerates all 512 missing/non-missing combinations of the 9 numeric      */
+ 82        +/*  predictors, plus JOB/REASON-missing rows and a median/mode anchor block.  */
+ 83        +/*  CITY carries a label naming the combination each row covers, so the       */
+ 84        +/*  row-level goldens name the rule that diverged.                            */
+ 85        +/*                                                                            */
+ 86        +/*  Run this AFTER the production and edge passes have exported their CSVs:   */
+ 87        +/*  it overwrites work.home_equity, and 02/04 then overwrite the downstream   */
+ 88        +/*  datasets.                                                                 */
+ 89        +/*******************************************************************************/
+ 90        +
+ 91        +%let missfile = /home/ODAUSER/home_equity_missing.csv;
+ 92        +
+ 93        +proc import datafile="&missfile."
+ 94        +    dbms=csv
+ 95        +    out=work.home_equity
+ 96        +    replace;
+ 97        +    guessingrows=max;
+ 98        +run;
+ 
+ NOTE: Unable to open parameter catalog: SASUSER.PARMS.PARMS.SLIST in update mode. Temporary parameter values will be saved to 
+ WORK.PARMS.PARMS.SLIST.
+ 99          /**********************************************************************
+ 100         *   PRODUCT:   SAS
+ 101         *   VERSION:   9.4
+ 102         *   CREATOR:   External File Interface
+ 103         *   DATE:      27AUG26
+ 104         *   DESC:      Generated SAS Datastep Code
+ 105         *   TEMPLATE SOURCE:  (None Specified.)
+ 106         ***********************************************************************/
+ 107            data WORK.HOME_EQUITY    ;
+ 108            %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
+ 109            infile '/home/ODAUSER/home_equity_missing.csv' delimiter = ',' MISSOVER DSD lrecl=32767 firstobs=2 ;
+ 110               informat BAD best32. ;
+ 111               informat LOAN best32. ;
+ 112               informat MORTDUE best32. ;
+ 113               informat VALUE best32. ;
+ 114               informat REASON $7. ;
+ 115               informat JOB $6. ;
+ 116               informat YOJ best32. ;
+ 117               informat DEROG best32. ;
+ 118               informat DELINQ best32. ;
+ 119               informat CLAGE best32. ;
+ 120               informat NINQ best32. ;
+ 121               informat CLNO best32. ;
+ 122               informat DEBTINC best32. ;
+ 123               informat APPDATE best32. ;
+ 124               informat CITY $59. ;
+ 125               informat STATE $8. ;
+ 126               informat DIVISION $15. ;
+ 127               informat REGION $9. ;
+ 128               format BAD best12. ;
+ 129               format LOAN best12. ;
+ 130               format MORTDUE best12. ;
+ 131               format VALUE best12. ;
+ 132               format REASON $7. ;
+ 133               format JOB $6. ;
+ 134               format YOJ best12. ;
+ 135               format DEROG best12. ;
+ 136               format DELINQ best12. ;
+ 137               format CLAGE best12. ;
+ 138               format NINQ best12. ;
+ 139               format CLNO best12. ;
+ 140               format DEBTINC best12. ;
+ 141               format APPDATE best12. ;
+ 142               format CITY $59. ;
+ 143               format STATE $8. ;
+ 144               format DIVISION $15. ;
+ 145               format REGION $9. ;
+ 146            input
+ 147                        BAD
+ 148                        LOAN
+ 149                        MORTDUE
+ 150                        VALUE
+ 151                        REASON  $
+ 152                        JOB  $
+ 153                        YOJ
+ 154                        DEROG
+ 155                        DELINQ
+ 156                        CLAGE
+ 157                        NINQ
+ 158                        CLNO
+ 159                        DEBTINC
+ 160                        APPDATE
+ 161                        CITY  $
+ 162                        STATE  $
+ 163                        DIVISION  $
+ 164                        REGION  $
+ 165            ;
+ 166            if _ERROR_ then call symputx('_EFIERR_',1);  /* set ERROR detection macro variable */
+ 167            run;
+ 
+ NOTE: The infile '/home/ODAUSER/home_equity_missing.csv' is:
+       Filename=/home/ODAUSER/home_equity_missing.csv,
+       Owner Name=ODAUSER,Group Name=oda,
+       Access Permission=-rw-r--r--,
+       Last Modified=27Aug2026:10:31:21,
+       File Size (bytes)=60660
+ 
+ NOTE: 520 records were read from the infile '/home/ODAUSER/home_equity_missing.csv'.
+       The minimum record length was 98.
+       The maximum record length was 131.
+ NOTE: The data set WORK.HOME_EQUITY has 520 observations and 18 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              10827.78k
+       OS Memory           30240.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        24  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     186
+       Page Swaps                        0
+       Voluntary Context Switches        15
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           264
+       
+ 
+ 520 rows created in WORK.HOME_EQUITY from /home/ODAUSER/home_equity_missing.csv.
+   
+   
+   
+ NOTE: WORK.HOME_EQUITY data set was successfully created.
+ NOTE: The data set WORK.HOME_EQUITY has 520 observations and 18 variables.
+ NOTE: PROCEDURE IMPORT used (Total process time):
+       real time           0.24 seconds
+       user cpu time       0.21 seconds
+       system cpu time     0.02 seconds
+       memory              10827.78k
+       OS Memory           30500.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        24  Switch Count  8
+       Page Faults                       0
+       Page Reclaims                     2979
+       Page Swaps                        0
+       Voluntary Context Switches        108
+       Involuntary Context Switches      2
+       Block Input Operations            0
+       Block Output Operations           376
+       
+ 
+ 168       +
+ 169       +title "Missingness fixture as imported";
+ 170       +proc print data=work.home_equity(obs=20);
+ 171       +    var BAD LOAN MORTDUE VALUE YOJ DEROG DELINQ CLAGE NINQ CLNO DEBTINC CITY;
+ 172       +run;
+ 
+ NOTE: There were 20 observations read from the data set WORK.HOME_EQUITY.
+ NOTE: PROCEDURE PRINT used (Total process time):
+       real time           0.03 seconds
+       user cpu time       0.03 seconds
+       system cpu time     0.00 seconds
+       memory              1430.03k
+       OS Memory           25516.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        25  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     284
+       Page Swaps                        0
+       Voluntary Context Switches        0
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           24
+       
+ 
+ 173       +title;
+ NOTE: %INCLUDE (level 1) ending.
+ 174        %include "&root./02_data_cleaning.sas";
+ NOTE: %INCLUDE (level 1) file /home/ODAUSER/02_data_cleaning.sas is file /home/ODAUSER/02_data_cleaning.sas.
+ 175       +/*******************************************************************************/
+ 176       +/*  SAS Program: 02_data_cleaning.sas                                        */
+ 177       +/*  Purpose: Clean and transform the HOME_EQUITY dataset                     */
+ 178       +/*  - Create derived columns (LTV, LOAN_OUTCOME)                            */
+ 179       +/*  - Handle missing values                                                  */
+ 180       +/*  - Filter records and check for outliers                                  */
+ 181       +/*******************************************************************************/
+ 182       +
+ 183       +/* Step 1: Create derived columns using DATA step */
+ 184       +data work.home_equity_clean;
+ 185       +    length LOAN_OUTCOME $ 7;
+ 186       +    set work.home_equity;
+ 187       +
+ 188       +    /* Calculate Loan-to-Value ratio */
+ 189       +    if VALUE ne . and MORTDUE ne . and VALUE > 0 then
+ 190       +        LTV = MORTDUE / VALUE;
+ 191       +    else
+ 192       +        LTV = .;
+ 193       +
+ 194       +    /* Create descriptive loan outcome */
+ 195       +    if BAD = 0 then LOAN_OUTCOME = 'Paid';
+ 196       +    else if BAD = 1 then LOAN_OUTCOME = 'Default';
+ 197       +    else LOAN_OUTCOME = '';
+ 198       +
+ 199       +    /* Proper-case city names */
+ 200       +    CITY = propcase(CITY);
+ 201       +
+ 202       +    /* Apply labels */
+ 203       +    label LTV = "Loan to Value Ratio"
+ 204       +          LOAN_OUTCOME = "Loan Outcome";
+ 205       +    format LTV percent8.2;
+ 206       +run;
+ 
+ NOTE: There were 520 observations read from the data set WORK.HOME_EQUITY.
+ NOTE: The data set WORK.HOME_EQUITY_CLEAN has 520 observations and 20 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              977.62k
+       OS Memory           25520.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        26  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     112
+       Page Swaps                        0
+       Voluntary Context Switches        13
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           272
+       
+ 
+ 207       +
+ 208       +/* Step 2: Handle missing values using array processing */
+ 209       +data work.home_equity_imputed;
+ 210       +    set work.home_equity_clean;
+ 211       +
+ 212       +    /* Array of numeric variables to impute */
+ 213       +    array num_vars{8} LOAN MORTDUE VALUE YOJ DEROG DELINQ CLAGE NINQ;
+ 214       +    array num_flags{8} LOAN_MISS MORTDUE_MISS VALUE_MISS YOJ_MISS
+ 215       +                       DEROG_MISS DELINQ_MISS CLAGE_MISS NINQ_MISS;
+ 216       +
+ 217       +    /* Flag missing values before imputation */
+ 218       +    do i = 1 to 8;
+ 219       +        if num_vars{i} = . then num_flags{i} = 1;
+ 220       +        else num_flags{i} = 0;
+ 221       +    end;
+ 222       +
+ 223       +    drop i;
+ 224       +run;
+ 
+ NOTE: There were 520 observations read from the data set WORK.HOME_EQUITY_CLEAN.
+ NOTE: The data set WORK.HOME_EQUITY_IMPUTED has 520 observations and 28 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              1134.56k
+       OS Memory           25520.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        27  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     94
+       Page Swaps                        0
+       Voluntary Context Switches        10
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           520
+       
+ 
+ 225       +
+ 226       +/* Step 3: Filter out records with missing critical fields */
+ 227       +data work.home_equity_filtered;
+ 228       +    set work.home_equity_imputed;
+ 229       +    /* Keep only records where LOAN, VALUE, and BAD are non-missing */
+ 230       +    if LOAN ne . and VALUE ne . and BAD ne .;
+ 231       +run;
+ 
+ NOTE: There were 520 observations read from the data set WORK.HOME_EQUITY_IMPUTED.
+ NOTE: The data set WORK.HOME_EQUITY_FILTERED has 264 observations and 28 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.01 seconds
+       system cpu time     0.00 seconds
+       memory              1164.46k
+       OS Memory           25520.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        28  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     103
+       Page Swaps                        0
+       Voluntary Context Switches        11
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           272
+       
+ 
+ 232       +
+ 233       +/* Step 4: Check for outliers using PROC MEANS */
+ 234       +title "Summary Statistics for Outlier Detection";
+ 235       +proc means data=work.home_equity_filtered
+ 236       +    n nmiss mean std min p1 p5 p25 median p75 p95 p99 max;
+ 237       +    var LOAN MORTDUE VALUE DEBTINC LTV CLAGE DEROG DELINQ;
+ 238       +run;
+ 
+ NOTE: There were 264 observations read from the data set WORK.HOME_EQUITY_FILTERED.
+ NOTE: PROCEDURE MEANS used (Total process time):
+       real time           0.05 seconds
+       user cpu time       0.05 seconds
+       system cpu time     0.01 seconds
+       memory              6708.78k
+       OS Memory           30912.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        29  Switch Count  1
+       Page Faults                       0
+       Page Reclaims                     1561
+       Page Swaps                        0
+       Voluntary Context Switches        23
+       Involuntary Context Switches      2
+       Block Input Operations            0
+       Block Output Operations           8
+       
+ 
+ 239       +title;
+ 240       +
+ 241       +/* Step 5: Create the final clean dataset */
+ 242       +data work.home_equity_final;
+ 243       +    set work.home_equity_filtered;
+ 244       +    /* Remove extreme outliers */
+ 245       +    if LTV > 0 and LTV < 5;          /* LTV ratio sanity check */
+ 246       +    if LOAN > 0;                       /* Positive loan amounts only */
+ 247       +    if VALUE > 0;                      /* Positive property values only */
+ 248       +run;
+ 
+ NOTE: There were 264 observations read from the data set WORK.HOME_EQUITY_FILTERED.
+ NOTE: The data set WORK.HOME_EQUITY_FINAL has 136 observations and 28 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              1016.00k
+       OS Memory           26032.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        30  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     111
+       Page Swaps                        0
+       Voluntary Context Switches        12
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           264
+       
+ 
+ 249       +
+ 250       +title "Clean Dataset Summary";
+ 251       +proc means data=work.home_equity_final n nmiss mean std min max;
+ 252       +    var LOAN MORTDUE VALUE LTV DEBTINC;
+ 253       +run;
+ 
+ NOTE: There were 136 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: PROCEDURE MEANS used (Total process time):
+       real time           0.02 seconds
+       user cpu time       0.03 seconds
+       system cpu time     0.00 seconds
+       memory              6327.21k
+       OS Memory           30912.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        31  Switch Count  1
+       Page Faults                       0
+       Page Reclaims                     1405
+       Page Swaps                        0
+       Voluntary Context Switches        20
+       Involuntary Context Switches      1
+       Block Input Operations            0
+       Block Output Operations           16
+       
+ 
+ 254       +title;
+ 255       +
+ 256       +proc print data=work.home_equity_final(obs=10);
+ 257       +    var BAD LOAN MORTDUE VALUE LTV LOAN_OUTCOME DEBTINC JOB REASON;
+ 258       +run;
+ 
+ NOTE: There were 10 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: PROCEDURE PRINT used (Total process time):
+       real time           0.01 seconds
+       user cpu time       0.01 seconds
+       system cpu time     0.00 seconds
+       memory              686.12k
+       OS Memory           25772.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        32  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     63
+       Page Swaps                        0
+       Voluntary Context Switches        0
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           0
+       
+ 
+ NOTE: %INCLUDE (level 1) ending.
+ 259        %include "&root./03_aggregation_reporting.sas";
+ NOTE: %INCLUDE (level 1) file /home/ODAUSER/03_aggregation_reporting.sas is file /home/ODAUSER/03_aggregation_reporting.sas.
+ 260       +/*******************************************************************************/
+ 261       +/*  SAS Program: 03_aggregation_reporting.sas                                */
+ 262       +/*  Purpose: Generate frequency tables, summary statistics, and reports      */
+ 263       +/*  - PROC FREQ for categorical distributions                                */
+ 264       +/*  - PROC MEANS for numeric summaries by group                              */
+ 265       +/*  - PROC TABULATE for cross-tabulations                                    */
+ 266       +/*  - PROC SQL for ad hoc queries                                            */
+ 267       +/*******************************************************************************/
+ 268       +
+ 269       +/* Step 1: Frequency tables for categorical variables */
+ 270       +title "Frequency Tables: Job Category, Loan Reason, Loan Outcome, Region";
+ 271       +proc freq data=work.home_equity_final;
+ 272       +    tables JOB REASON LOAN_OUTCOME REGION / nocum;
+ 273       +run;
+ 
+ NOTE: There were 136 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: PROCEDURE FREQ used (Total process time):
+       real time           0.02 seconds
+       user cpu time       0.03 seconds
+       system cpu time     0.00 seconds
+       memory              1036.28k
+       OS Memory           26032.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        33  Switch Count  3
+       Page Faults                       0
+       Page Reclaims                     173
+       Page Swaps                        0
+       Voluntary Context Switches        21
+       Involuntary Context Switches      2
+       Block Input Operations            0
+       Block Output Operations           280
+       
+ 
+ 274       +title;
+ 275       +
+ 276       +/* Step 2: Summary statistics by loan outcome */
+ 277       +title "Summary Statistics by Loan Outcome";
+ 278       +proc means data=work.home_equity_final
+ 279       +    n mean median std min max;
+ 280       +    class LOAN_OUTCOME;
+ 281       +    var LOAN MORTDUE VALUE DEBTINC;
+ 282       +run;
+ 
+ NOTE: There were 136 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: PROCEDURE MEANS used (Total process time):
+       real time           0.02 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.00 seconds
+       memory              7611.56k
+       OS Memory           31936.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        34  Switch Count  1
+       Page Faults                       0
+       Page Reclaims                     1657
+       Page Swaps                        0
+       Voluntary Context Switches        31
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           0
+       
+ 
+ 283       +title;
+ 284       +
+ 285       +/* Step 3: Cross-tabulation of default rates by JOB and REGION */
+ 286       +title "Default Rates by Job Category and Region";
+ 287       +proc tabulate data=work.home_equity_final;
+ 288       +    class JOB REGION;
+ 289       +    var BAD;
+ 290       +    table JOB all='Total',
+ 291       +          REGION * BAD * (n mean*f=percent8.2) all='Total' * BAD * (n mean*f=percent8.2);
+ 292       +run;
+ 
+ NOTE: There were 136 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: PROCEDURE TABULATE used (Total process time):
+       real time           0.02 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.00 seconds
+       memory              9188.87k
+       OS Memory           35272.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        35  Switch Count  5
+       Page Faults                       0
+       Page Reclaims                     2062
+       Page Swaps                        0
+       Voluntary Context Switches        54
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           544
+       
+ 
+ 293       +title;
+ 294       +
+ 295       +/* Step 4: Top 10 states by average loan amount using PROC SQL */
+ 296       +title "Top 10 States by Average Loan Amount";
+ 297       +proc sql outobs=10;
+ 298       +    select STATE,
+ 299       +           count(*) as num_loans,
+ 300       +           mean(LOAN) as avg_loan format=dollar12.,
+ 301       +           mean(VALUE) as avg_property_value format=dollar12.,
+ 302       +           mean(BAD) as default_rate format=percent8.2
+ 303       +    from work.home_equity_final
+ 304       +    group by STATE
+ 305       +    having count(*) >= 10
+ 306       +    order by avg_loan desc;
+ 307       +quit;
+ NOTE: PROCEDURE SQL used (Total process time):
+       real time           0.01 seconds
+       user cpu time       0.01 seconds
+       system cpu time     0.00 seconds
+       memory              6712.60k
+       OS Memory           31676.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        36  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     278
+       Page Swaps                        0
+       Voluntary Context Switches        15
+       Involuntary Context Switches      1
+       Block Input Operations            0
+       Block Output Operations           8
+       
+ 
+ 308       +title;
+ 309       +
+ 310       +/* Step 5: Additional reporting - Loan distribution by reason and outcome */
+ 311       +title "Loan Amount Distribution by Reason and Outcome";
+ 312       +proc means data=work.home_equity_final n mean std median;
+ 313       +    class REASON LOAN_OUTCOME;
+ 314       +    var LOAN LTV DEBTINC;
+ 315       +run;
+ 
+ NOTE: There were 136 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: PROCEDURE MEANS used (Total process time):
+       real time           0.02 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.01 seconds
+       memory              7886.28k
+       OS Memory           33984.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        37  Switch Count  1
+       Page Faults                       0
+       Page Reclaims                     1712
+       Page Swaps                        0
+       Voluntary Context Switches        41
+       Involuntary Context Switches      2
+       Block Input Operations            0
+       Block Output Operations           16
+       
+ 
+ 316       +title;
+ NOTE: %INCLUDE (level 1) ending.
+ 317        %include "&root./04_risk_segmentation.sas";
+ NOTE: %INCLUDE (level 1) file /home/ODAUSER/04_risk_segmentation.sas is file /home/ODAUSER/04_risk_segmentation.sas.
+ 318       +/*******************************************************************************/
+ 319       +/*  SAS Program: 04_risk_segmentation.sas                                    */
+ 320       +/*  Purpose: Create risk segments for loan portfolio analysis                */
+ 321       +/*  - Define risk buckets using PROC FORMAT                                  */
+ 322       +/*  - Create composite risk scores                                           */
+ 323       +/*  - Analyze default rates by risk segment                                  */
+ 324       +/*******************************************************************************/
+ 325       +
+ 326       +/* Step 1: Define risk bucket formats using PROC FORMAT */
+ 327       +proc format;
+ 328       +    /* LTV Risk Categories */
+ 329       +    value ltv_risk
+ 330       +        low  -< 0.60 = 'Low'
+ 331       +        0.60 -< 0.80 = 'Medium'
+ 332       +        0.80 - high   = 'High';
+ NOTE: Format LTV_RISK has been output.
+ 333       +
+ 334       +    /* Debt-to-Income Risk Categories */
+ 335       +    value dti_risk
+ 336       +        low  -< 30  = 'Low'
+ 337       +        30   -< 40  = 'Medium'
+ 338       +        40   -< 50  = 'High'
+ 339       +        50   - high  = 'Very High';
+ NOTE: Format DTI_RISK has been output.
+ 340       +
+ 341       +    /* Delinquency Risk Categories */
+ 342       +    value delinq_risk
+ 343       +        0         = 'None'
+ 344       +        1         = 'Low'
+ 345       +        2 - 3     = 'Medium'
+ 346       +        4 - high  = 'High';
+ NOTE: Format DELINQ_RISK has been output.
+ 347       +
+ 348       +    /* Combined Risk Score Categories */
+ 349       +    value risk_score
+ 350       +        low  -< 3 = 'Low Risk'
+ 351       +        3    -< 5 = 'Medium Risk'
+ 352       +        5    -< 7 = 'High Risk'
+ 353       +        7 - high  = 'Very High Risk';
+ NOTE: Format RISK_SCORE has been output.
+ 354       +run;
+ 
+ NOTE: PROCEDURE FORMAT used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              293.71k
+       OS Memory           27304.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        38  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     23
+       Page Swaps                        0
+       Voluntary Context Switches        17
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           64
+       
+ 
+ 355       +
+ 356       +/* Step 2: Create risk segment variables */
+ 357       +data work.home_equity_risk;
+ 358       +    set work.home_equity_final;
+ 359       +
+ 360       +    /* LTV risk category */
+ 361       +    length LTV_RISK_CAT $6 DTI_RISK_CAT $9 DELINQ_RISK_CAT $6;
+ 362       +
+ 363       +    if LTV ne . then do;
+ 364       +        if LTV < 0.60 then LTV_RISK_CAT = 'Low';
+ 365       +        else if LTV < 0.80 then LTV_RISK_CAT = 'Medium';
+ 366       +        else LTV_RISK_CAT = 'High';
+ 367       +    end;
+ 368       +
+ 369       +    /* Debt-to-Income risk category */
+ 370       +    if DEBTINC ne . then do;
+ 371       +        if DEBTINC < 30 then DTI_RISK_CAT = 'Low';
+ 372       +        else if DEBTINC < 40 then DTI_RISK_CAT = 'Medium';
+ 373       +        else if DEBTINC < 50 then DTI_RISK_CAT = 'High';
+ 374       +        else DTI_RISK_CAT = 'Very High';
+ 375       +    end;
+ 376       +
+ 377       +    /* Delinquency risk category */
+ 378       +    if DELINQ ne . then do;
+ 379       +        if DELINQ = 0 then DELINQ_RISK_CAT = 'None';
+ 380       +        else if DELINQ = 1 then DELINQ_RISK_CAT = 'Low';
+ 381       +        else if DELINQ <= 3 then DELINQ_RISK_CAT = 'Medium';
+ 382       +        else DELINQ_RISK_CAT = 'High';
+ 383       +    end;
+ 384       +
+ 385       +    /* Composite risk score (0-10 scale) */
+ 386       +    RISK_SCORE = 0;
+ 387       +
+ 388       +    /* LTV component (0-3 points) */
+ 389       +    if LTV ne . then do;
+ 390       +        if LTV >= 0.80 then RISK_SCORE = RISK_SCORE + 3;
+ 391       +        else if LTV >= 0.60 then RISK_SCORE = RISK_SCORE + 1.5;
+ 392       +    end;
+ 393       +
+ 394       +    /* DTI component (0-3 points) */
+ 395       +    if DEBTINC ne . then do;
+ 396       +        if DEBTINC >= 50 then RISK_SCORE = RISK_SCORE + 3;
+ 397       +        else if DEBTINC >= 40 then RISK_SCORE = RISK_SCORE + 2;
+ 398       +        else if DEBTINC >= 30 then RISK_SCORE = RISK_SCORE + 1;
+ 399       +    end;
+ 400       +
+ 401       +    /* Delinquency component (0-2 points) */
+ 402       +    if DELINQ ne . then do;
+ 403       +        if DELINQ >= 4 then RISK_SCORE = RISK_SCORE + 2;
+ 404       +        else if DELINQ >= 2 then RISK_SCORE = RISK_SCORE + 1.5;
+ 405       +        else if DELINQ = 1 then RISK_SCORE = RISK_SCORE + 0.5;
+ 406       +    end;
+ 407       +
+ 408       +    /* Derogatory reports component (0-2 points) */
+ 409       +    if DEROG ne . then do;
+ 410       +        if DEROG >= 3 then RISK_SCORE = RISK_SCORE + 2;
+ 411       +        else if DEROG >= 1 then RISK_SCORE = RISK_SCORE + 1;
+ 412       +    end;
+ 413       +
+ 414       +    /* Risk score category */
+ 415       +    length RISK_SEGMENT $14;
+ 416       +    if RISK_SCORE < 3 then RISK_SEGMENT = 'Low Risk';
+ 417       +    else if RISK_SCORE < 5 then RISK_SEGMENT = 'Medium Risk';
+ 418       +    else if RISK_SCORE < 7 then RISK_SEGMENT = 'High Risk';
+ 419       +    else RISK_SEGMENT = 'Very High Risk';
+ 420       +
+ 421       +    label LTV_RISK_CAT = "LTV Risk Category"
+ 422       +          DTI_RISK_CAT = "Debt-to-Income Risk Category"
+ 423       +          DELINQ_RISK_CAT = "Delinquency Risk Category"
+ 424       +          RISK_SCORE = "Composite Risk Score (0-10)"
+ 425       +          RISK_SEGMENT = "Risk Segment";
+ 426       +run;
+ 
+ NOTE: There were 136 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: The data set WORK.HOME_EQUITY_RISK has 136 observations and 33 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              1072.31k
+       OS Memory           27824.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        39  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     110
+       Page Swaps                        0
+       Voluntary Context Switches        13
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           272
+       
+ 
+ 427       +
+ 428       +/* Step 3: Distribution across risk segments */
+ 429       +title "Distribution of Loans by Risk Segment";
+ 430       +proc freq data=work.home_equity_risk;
+ 431       +    tables RISK_SEGMENT LTV_RISK_CAT DTI_RISK_CAT DELINQ_RISK_CAT / nocum;
+ 432       +run;
+ 
+ NOTE: There were 136 observations read from the data set WORK.HOME_EQUITY_RISK.
+ NOTE: PROCEDURE FREQ used (Total process time):
+       real time           0.02 seconds
+       user cpu time       0.03 seconds
+       system cpu time     0.00 seconds
+       memory              922.37k
+       OS Memory           27824.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        40  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     121
+       Page Swaps                        0
+       Voluntary Context Switches        15
+       Involuntary Context Switches      1
+       Block Input Operations            0
+       Block Output Operations           264
+       
+ 
+ 433       +title;
+ 434       +
+ 435       +/* Step 4: Default rate by risk segment */
+ 436       +title "Average Default Rate by Risk Segment";
+ 437       +proc means data=work.home_equity_risk n mean std;
+ 438       +    class RISK_SEGMENT;
+ 439       +    var BAD LOAN LTV DEBTINC;
+ 440       +run;
+ 
+ NOTE: There were 136 observations read from the data set WORK.HOME_EQUITY_RISK.
+ NOTE: PROCEDURE MEANS used (Total process time):
+       real time           0.03 seconds
+       user cpu time       0.03 seconds
+       system cpu time     0.00 seconds
+       memory              7267.34k
+       OS Memory           32960.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        41  Switch Count  1
+       Page Faults                       0
+       Page Reclaims                     1425
+       Page Swaps                        0
+       Voluntary Context Switches        15
+       Involuntary Context Switches      3
+       Block Input Operations            0
+       Block Output Operations           16
+       
+ 
+ 441       +title;
+ 442       +
+ 443       +/* Step 5: Cross-tabulation of risk segments */
+ 444       +title "Default Rates by LTV Risk and DTI Risk";
+ 445       +proc freq data=work.home_equity_risk;
+ 446       +    tables LTV_RISK_CAT * DTI_RISK_CAT * BAD / norow nocol nopercent;
+ 447       +run;
+ 
+ NOTE: There were 136 observations read from the data set WORK.HOME_EQUITY_RISK.
+ NOTE: PROCEDURE FREQ used (Total process time):
+       real time           0.02 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.01 seconds
+       memory              1308.34k
+       OS Memory           28084.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        42  Switch Count  4
+       Page Faults                       0
+       Page Reclaims                     200
+       Page Swaps                        0
+       Voluntary Context Switches        29
+       Involuntary Context Switches      1
+       Block Input Operations            0
+       Block Output Operations           544
+       
+ 
+ 448       +title;
+ NOTE: %INCLUDE (level 1) ending.
+ 449        %include "&root./92_export_golden_missing.sas";
+ NOTE: %INCLUDE (level 1) file /home/ODAUSER/92_export_golden_missing.sas is file /home/ODAUSER/92_export_golden_missing.sas.
+ 450       +/*******************************************************************************/
+ 451       +/*  SAS Program: 92_export_golden_missing.sas                                 */
+ 452       +/*  Purpose: Export the missingness golden set.                               */
+ 453       +/*  Run after 93_load_mock_missing.sas, 02_data_cleaning.sas and              */
+ 454       +/*  04_risk_segmentation.sas in the same session.                             */
+ 455       +/*                                                                            */
+ 456       +/*  Row-level on purpose: the fixture enumerates every missing/non-missing    */
+ 457       +/*  combination of the numeric predictors, so committing every derived value  */
+ 458       +/*  and every *_MISS flag per row gives the PySpark side an exact per-        */
+ 459       +/*  combination expectation of missing-flag and imputation semantics.         */
+ 460       +/*******************************************************************************/
+ 461       +
+ 462       +%let outdir = /home/ODAUSER/golden/missing;
+ 463       +
+ 464       +/* Every derived value before any row is filtered out, with the source        */
+ 465       +/* predictor columns so a null-handling divergence shows the inputs too.      */
+ 466       +data work.miss_clean_rows;
+ 467       +    set work.home_equity_clean;
+ 468       +    keep CITY BAD LOAN MORTDUE VALUE REASON JOB YOJ DEROG DELINQ
+ 469       +         CLAGE NINQ CLNO DEBTINC LTV LOAN_OUTCOME;
+ 470       +    format _numeric_;
+ 471       +run;
+ 
+ NOTE: There were 520 observations read from the data set WORK.HOME_EQUITY_CLEAN.
+ NOTE: The data set WORK.MISS_CLEAN_ROWS has 520 observations and 16 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              967.31k
+       OS Memory           27824.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        43  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     99
+       Page Swaps                        0
+       Voluntary Context Switches        16
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           264
+       
+ 
+ 472       +
+ 473       +/* Which rows survive 02's filters, with every *_MISS flag 02 sets and the    */
+ 474       +/* post-cleaning (imputed) values of the flagged columns.                     */
+ 475       +data work.miss_final_rows;
+ 476       +    set work.home_equity_final;
+ 477       +    keep CITY LOAN MORTDUE VALUE REASON JOB YOJ DEROG DELINQ
+ 478       +         CLAGE NINQ CLNO DEBTINC LTV LOAN_OUTCOME
+ 479       +         LOAN_MISS MORTDUE_MISS VALUE_MISS YOJ_MISS
+ 480       +         DEROG_MISS DELINQ_MISS CLAGE_MISS NINQ_MISS;
+ 481       +    format _numeric_;
+ 482       +run;
+ 
+ NOTE: There were 136 observations read from the data set WORK.HOME_EQUITY_FINAL.
+ NOTE: The data set WORK.MISS_FINAL_ROWS has 136 observations and 23 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              1017.93k
+       OS Memory           27824.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        44  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     114
+       Page Swaps                        0
+       Voluntary Context Switches        15
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           272
+       
+ 
+ 483       +
+ 484       +/* Category assignment and composite score for every surviving row */
+ 485       +data work.miss_risk_rows;
+ 486       +    set work.home_equity_risk;
+ 487       +    keep CITY LTV DEBTINC DELINQ DEROG
+ 488       +         LTV_RISK_CAT DTI_RISK_CAT DELINQ_RISK_CAT RISK_SCORE RISK_SEGMENT;
+ 489       +    format _numeric_;
+ 490       +run;
+ 
+ NOTE: There were 136 observations read from the data set WORK.HOME_EQUITY_RISK.
+ NOTE: The data set WORK.MISS_RISK_ROWS has 136 observations and 10 variables.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              995.34k
+       OS Memory           27824.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        45  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     117
+       Page Swaps                        0
+       Voluntary Context Switches        14
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           264
+       
+ 
+ 491       +
+ 492       +proc sql;
+ 493       +    create table work.miss_row_counts as
+ 494       +        select 'home_equity'          as STAGE length=22, count(*) as N from work.home_equity
+ 495       +        union all
+ 496       +        select 'home_equity_clean'    as STAGE length=22, count(*) as N from work.home_equity_clean
+ 497       +        union all
+ 498       +        select 'home_equity_imputed'  as STAGE length=22, count(*) as N from work.home_equity_imputed
+ 499       +        union all
+ 500       +        select 'home_equity_filtered' as STAGE length=22, count(*) as N from work.home_equity_filtered
+ 501       +        union all
+ 502       +        select 'home_equity_final'    as STAGE length=22, count(*) as N from work.home_equity_final
+ 503       +        union all
+ 504       +        select 'home_equity_risk'     as STAGE length=22, count(*) as N from work.home_equity_risk;
+ NOTE: Table WORK.MISS_ROW_COUNTS created, with 6 rows and 2 columns.
+ 
+ 505       +quit;
+ NOTE: PROCEDURE SQL used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.01 seconds
+       system cpu time     0.00 seconds
+       memory              7348.43k
+       OS Memory           33988.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        46  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     344
+       Page Swaps                        0
+       Voluntary Context Switches        12
+       Involuntary Context Switches      2
+       Block Input Operations            0
+       Block Output Operations           264
+       
+ 
+ 506       +
+ 507       +/* Sums of every *_MISS flag over the surviving rows */
+ 508       +proc sql;
+ 509       +    create table work.miss_flag_totals as
+ 510       +        select sum(LOAN_MISS)    as LOAN_MISS_TOTAL,
+ 511       +               sum(MORTDUE_MISS) as MORTDUE_MISS_TOTAL,
+ 512       +               sum(VALUE_MISS)   as VALUE_MISS_TOTAL,
+ 513       +               sum(YOJ_MISS)     as YOJ_MISS_TOTAL,
+ 514       +               sum(DEROG_MISS)   as DEROG_MISS_TOTAL,
+ 515       +               sum(DELINQ_MISS)  as DELINQ_MISS_TOTAL,
+ 516       +               sum(CLAGE_MISS)   as CLAGE_MISS_TOTAL,
+ 517       +               sum(NINQ_MISS)    as NINQ_MISS_TOTAL
+ 518       +        from work.home_equity_final;
+ NOTE: Table WORK.MISS_FLAG_TOTALS created, with 1 rows and 8 columns.
+ 
+ 519       +quit;
+ NOTE: PROCEDURE SQL used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              5699.03k
+       OS Memory           32688.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        47  Switch Count  2
+       Page Faults                       0
+       Page Reclaims                     116
+       Page Swaps                        0
+       Voluntary Context Switches        14
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           264
+       
+ 
+ 520       +
+ 521       +proc freq data=work.home_equity_risk noprint;
+ 522       +    tables RISK_SEGMENT / out=work.miss_risk_segment_freq (rename=(COUNT=FREQUENCY));
+ 523       +run;
+ 
+ NOTE: There were 136 observations read from the data set WORK.HOME_EQUITY_RISK.
+ NOTE: The data set WORK.MISS_RISK_SEGMENT_FREQ has 4 observations and 3 variables.
+ NOTE: PROCEDURE FREQ used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              1106.12k
+       OS Memory           28084.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        48  Switch Count  4
+       Page Faults                       0
+       Page Reclaims                     187
+       Page Swaps                        0
+       Voluntary Context Switches        27
+       Involuntary Context Switches      1
+       Block Input Operations            0
+       Block Output Operations           528
+       
+ 
+ 524       +
+ 525       +%macro dump_miss(ds);
+ 526       +    proc export data=work.&ds outfile="&outdir./&ds..csv" dbms=csv replace;
+ 527       +    run;
+ 528       +%mend;
+ 529       +
+ 530       +%dump_miss(miss_row_counts);
+ 
+ NOTE: Unable to open parameter catalog: SASUSER.PARMS.PARMS.SLIST in update mode. Temporary parameter values will be saved to 
+ WORK.PARMS.PARMS.SLIST.
+ 531         /**********************************************************************
+ 532         *   PRODUCT:   SAS
+ 533         *   VERSION:   9.4
+ 534         *   CREATOR:   External File Interface
+ 535         *   DATE:      27AUG26
+ 536         *   DESC:      Generated SAS Datastep Code
+ 537         *   TEMPLATE SOURCE:  (None Specified.)
+ 538         ***********************************************************************/
+ 539            data _null_;
+ 540            %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
+ 541            %let _EFIREC_ = 0;     /* clear export record count macro variable */
+ 542            file '/home/ODAUSER/golden/missing/miss_row_counts.csv' delimiter=',' DSD DROPOVER lrecl=32767;
+ 543            if _n_ = 1 then        /* write column names or labels */
+ 544             do;
+ 545               put
+ 546                  "STAGE"
+ 547               ','
+ 548                  "N"
+ 549               ;
+ 550             end;
+ 551           set  WORK.MISS_ROW_COUNTS   end=EFIEOD;
+ 552               format STAGE $22. ;
+ 553               format N best12. ;
+ 554             do;
+ 555               EFIOUT + 1;
+ 556               put STAGE $ @;
+ 557               put N ;
+ 558               ;
+ 559             end;
+ 560            if _ERROR_ then call symputx('_EFIERR_',1);  /* set ERROR detection macro variable */
+ 561            if EFIEOD then call symputx('_EFIREC_',EFIOUT);
+ 562            run;
+ 
+ NOTE: The file '/home/ODAUSER/golden/missing/miss_row_counts.csv' is:
+       Filename=/home/ODAUSER/golden/missing/miss_row_counts.csv,
+       Owner Name=ODAUSER,Group Name=oda,
+       Access Permission=-rw-r--r--,
+       Last Modified=27Aug2026:10:31:59
+ 
+ NOTE: 7 records were written to the file '/home/ODAUSER/golden/missing/miss_row_counts.csv'.
+       The minimum record length was 7.
+       The maximum record length was 24.
+ NOTE: There were 6 observations read from the data set WORK.MISS_ROW_COUNTS.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              9301.34k
+       OS Memory           33056.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        49  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     90
+       Page Swaps                        0
+       Voluntary Context Switches        9
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           16
+       
+ 
+ 6 records created in /home/ODAUSER/golden/missing/miss_row_counts.csv from WORK.MISS_ROW_COUNTS.
+   
+   
+ NOTE: "/home/ODAUSER/golden/missing/miss_row_counts.csv" file was successfully created.
+ NOTE: PROCEDURE EXPORT used (Total process time):
+       real time           0.03 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.00 seconds
+       memory              9301.34k
+       OS Memory           33316.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        49  Switch Count  8
+       Page Faults                       0
+       Page Reclaims                     1201
+       Page Swaps                        0
+       Voluntary Context Switches        69
+       Involuntary Context Switches      1
+       Block Input Operations            0
+       Block Output Operations           32
+       
+ 
+ 563       +%dump_miss(miss_clean_rows);
+ 
+ NOTE: Unable to open parameter catalog: SASUSER.PARMS.PARMS.SLIST in update mode. Temporary parameter values will be saved to 
+ WORK.PARMS.PARMS.SLIST.
+ 564         /**********************************************************************
+ 565         *   PRODUCT:   SAS
+ 566         *   VERSION:   9.4
+ 567         *   CREATOR:   External File Interface
+ 568         *   DATE:      27AUG26
+ 569         *   DESC:      Generated SAS Datastep Code
+ 570         *   TEMPLATE SOURCE:  (None Specified.)
+ 571         ***********************************************************************/
+ 572            data _null_;
+ 573            %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
+ 574            %let _EFIREC_ = 0;     /* clear export record count macro variable */
+ 575            file '/home/ODAUSER/golden/missing/miss_clean_rows.csv' delimiter=',' DSD DROPOVER lrecl=32767;
+ 576            if _n_ = 1 then        /* write column names or labels */
+ 577             do;
+ 578               put
+ 579                  "LOAN_OUTCOME"
+ 580               ','
+ 581                  "BAD"
+ 582               ','
+ 583                  "LOAN"
+ 584               ','
+ 585                  "MORTDUE"
+ 586               ','
+ 587                  "VALUE"
+ 588               ','
+ 589                  "REASON"
+ 590               ','
+ 591                  "JOB"
+ 592               ','
+ 593                  "YOJ"
+ 594               ','
+ 595                  "DEROG"
+ 596               ','
+ 597                  "DELINQ"
+ 598               ','
+ 599                  "CLAGE"
+ 600               ','
+ 601                  "NINQ"
+ 602               ','
+ 603                  "CLNO"
+ 604               ','
+ 605                  "DEBTINC"
+ 606               ','
+ 607                  "CITY"
+ 608               ','
+ 609                  "LTV"
+ 610               ;
+ 611             end;
+ 612           set  WORK.MISS_CLEAN_ROWS   end=EFIEOD;
+ 613               format LOAN_OUTCOME $7. ;
+ 614               format BAD best12. ;
+ 615               format LOAN best12. ;
+ 616               format MORTDUE best12. ;
+ 617               format VALUE best12. ;
+ 618               format REASON $7. ;
+ 619               format JOB $6. ;
+ 620               format YOJ best12. ;
+ 621               format DEROG best12. ;
+ 622               format DELINQ best12. ;
+ 623               format CLAGE best12. ;
+ 624               format NINQ best12. ;
+ 625               format CLNO best12. ;
+ 626               format DEBTINC best12. ;
+ 627               format CITY $59. ;
+ 628               format LTV best12. ;
+ 629             do;
+ 630               EFIOUT + 1;
+ 631               put LOAN_OUTCOME $ @;
+ 632               put BAD @;
+ 633               put LOAN @;
+ 634               put MORTDUE @;
+ 635               put VALUE @;
+ 636               put REASON $ @;
+ 637               put JOB $ @;
+ 638               put YOJ @;
+ 639               put DEROG @;
+ 640               put DELINQ @;
+ 641               put CLAGE @;
+ 642               put NINQ @;
+ 643               put CLNO @;
+ 644               put DEBTINC @;
+ 645               put CITY $ @;
+ 646               put LTV ;
+ 647               ;
+ 648             end;
+ 649            if _ERROR_ then call symputx('_EFIERR_',1);  /* set ERROR detection macro variable */
+ 650            if EFIEOD then call symputx('_EFIREC_',EFIOUT);
+ 651            run;
+ 
+ NOTE: The file '/home/ODAUSER/golden/missing/miss_clean_rows.csv' is:
+       Filename=/home/ODAUSER/golden/missing/miss_clean_rows.csv,
+       Owner Name=ODAUSER,Group Name=oda,
+       Access Permission=-rw-r--r--,
+       Last Modified=27Aug2026:10:31:59
+ 
+ NOTE: 521 records were written to the file '/home/ODAUSER/golden/missing/miss_clean_rows.csv'.
+       The minimum record length was 63.
+       The maximum record length was 96.
+ NOTE: There were 520 observations read from the data set WORK.MISS_CLEAN_ROWS.
+ NOTE: DATA statement used (Total process time):
+       real time           0.01 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              9355.12k
+       OS Memory           33056.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        50  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     102
+       Page Swaps                        0
+       Voluntary Context Switches        10
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           96
+       
+ 
+ 520 records created in /home/ODAUSER/golden/missing/miss_clean_rows.csv from WORK.MISS_CLEAN_ROWS.
+   
+   
+ NOTE: "/home/ODAUSER/golden/missing/miss_clean_rows.csv" file was successfully created.
+ NOTE: PROCEDURE EXPORT used (Total process time):
+       real time           0.03 seconds
+       user cpu time       0.03 seconds
+       system cpu time     0.01 seconds
+       memory              9355.12k
+       OS Memory           33316.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        50  Switch Count  7
+       Page Faults                       0
+       Page Reclaims                     1035
+       Page Swaps                        0
+       Voluntary Context Switches        68
+       Involuntary Context Switches      2
+       Block Input Operations            0
+       Block Output Operations           112
+       
+ 
+ 652       +%dump_miss(miss_final_rows);
+ 
+ NOTE: Unable to open parameter catalog: SASUSER.PARMS.PARMS.SLIST in update mode. Temporary parameter values will be saved to 
+ WORK.PARMS.PARMS.SLIST.
+ 653         /**********************************************************************
+ 654         *   PRODUCT:   SAS
+ 655         *   VERSION:   9.4
+ 656         *   CREATOR:   External File Interface
+ 657         *   DATE:      27AUG26
+ 658         *   DESC:      Generated SAS Datastep Code
+ 659         *   TEMPLATE SOURCE:  (None Specified.)
+ 660         ***********************************************************************/
+ 661            data _null_;
+ 662            %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
+ 663            %let _EFIREC_ = 0;     /* clear export record count macro variable */
+ 664            file '/home/ODAUSER/golden/missing/miss_final_rows.csv' delimiter=',' DSD DROPOVER lrecl=32767;
+ 665            if _n_ = 1 then        /* write column names or labels */
+ 666             do;
+ 667               put
+ 668                  "LOAN_OUTCOME"
+ 669               ','
+ 670                  "LOAN"
+ 671               ','
+ 672                  "MORTDUE"
+ 673               ','
+ 674                  "VALUE"
+ 675               ','
+ 676                  "REASON"
+ 677               ','
+ 678                  "JOB"
+ 679               ','
+ 680                  "YOJ"
+ 681               ','
+ 682                  "DEROG"
+ 683               ','
+ 684                  "DELINQ"
+ 685               ','
+ 686                  "CLAGE"
+ 687               ','
+ 688                  "NINQ"
+ 689               ','
+ 690                  "CLNO"
+ 691               ','
+ 692                  "DEBTINC"
+ 693               ','
+ 694                  "CITY"
+ 695               ','
+ 696                  "LTV"
+ 697               ','
+ 698                  "LOAN_MISS"
+ 699               ','
+ 700                  "MORTDUE_MISS"
+ 701               ','
+ 702                  "VALUE_MISS"
+ 703               ','
+ 704                  "YOJ_MISS"
+ 705               ','
+ 706                  "DEROG_MISS"
+ 707               ','
+ 708                  "DELINQ_MISS"
+ 709               ','
+ 710                  "CLAGE_MISS"
+ 711               ','
+ 712                  "NINQ_MISS"
+ 713               ;
+ 714             end;
+ 715           set  WORK.MISS_FINAL_ROWS   end=EFIEOD;
+ 716               format LOAN_OUTCOME $7. ;
+ 717               format LOAN best12. ;
+ 718               format MORTDUE best12. ;
+ 719               format VALUE best12. ;
+ 720               format REASON $7. ;
+ 721               format JOB $6. ;
+ 722               format YOJ best12. ;
+ 723               format DEROG best12. ;
+ 724               format DELINQ best12. ;
+ 725               format CLAGE best12. ;
+ 726               format NINQ best12. ;
+ 727               format CLNO best12. ;
+ 728               format DEBTINC best12. ;
+ 729               format CITY $59. ;
+ 730               format LTV best12. ;
+ 731               format LOAN_MISS best12. ;
+ 732               format MORTDUE_MISS best12. ;
+ 733               format VALUE_MISS best12. ;
+ 734               format YOJ_MISS best12. ;
+ 735               format DEROG_MISS best12. ;
+ 736               format DELINQ_MISS best12. ;
+ 737               format CLAGE_MISS best12. ;
+ 738               format NINQ_MISS best12. ;
+ 739             do;
+ 740               EFIOUT + 1;
+ 741               put LOAN_OUTCOME $ @;
+ 742               put LOAN @;
+ 743               put MORTDUE @;
+ 744               put VALUE @;
+ 745               put REASON $ @;
+ 746               put JOB $ @;
+ 747               put YOJ @;
+ 748               put DEROG @;
+ 749               put DELINQ @;
+ 750               put CLAGE @;
+ 751               put NINQ @;
+ 752               put CLNO @;
+ 753               put DEBTINC @;
+ 754               put CITY $ @;
+ 755               put LTV @;
+ 756               put LOAN_MISS @;
+ 757               put MORTDUE_MISS @;
+ 758               put VALUE_MISS @;
+ 759               put YOJ_MISS @;
+ 760               put DEROG_MISS @;
+ 761               put DELINQ_MISS @;
+ 762               put CLAGE_MISS @;
+ 763               put NINQ_MISS ;
+ 764               ;
+ 765             end;
+ 766            if _ERROR_ then call symputx('_EFIERR_',1);  /* set ERROR detection macro variable */
+ 767            if EFIEOD then call symputx('_EFIREC_',EFIOUT);
+ 768            run;
+ 
+ NOTE: The file '/home/ODAUSER/golden/missing/miss_final_rows.csv' is:
+       Filename=/home/ODAUSER/golden/missing/miss_final_rows.csv,
+       Owner Name=ODAUSER,Group Name=oda,
+       Access Permission=-rw-r--r--,
+       Last Modified=27Aug2026:10:31:59
+ 
+ NOTE: 137 records were written to the file '/home/ODAUSER/golden/missing/miss_final_rows.csv'.
+       The minimum record length was 83.
+       The maximum record length was 179.
+ NOTE: There were 136 observations read from the data set WORK.MISS_FINAL_ROWS.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              9358.42k
+       OS Memory           33056.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        51  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     120
+       Page Swaps                        0
+       Voluntary Context Switches        10
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           40
+       
+ 
+ 136 records created in /home/ODAUSER/golden/missing/miss_final_rows.csv from WORK.MISS_FINAL_ROWS.
+   
+   
+ NOTE: "/home/ODAUSER/golden/missing/miss_final_rows.csv" file was successfully created.
+ NOTE: PROCEDURE EXPORT used (Total process time):
+       real time           0.03 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.00 seconds
+       memory              9358.42k
+       OS Memory           33316.00k
+       Timestamp           08/27/2026 10:31:59 AM
+       Step Count                        51  Switch Count  7
+       Page Faults                       0
+       Page Reclaims                     1002
+       Page Swaps                        0
+       Voluntary Context Switches        64
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           56
+       
+ 
+ 769       +%dump_miss(miss_risk_rows);
+ 
+ NOTE: Unable to open parameter catalog: SASUSER.PARMS.PARMS.SLIST in update mode. Temporary parameter values will be saved to 
+ WORK.PARMS.PARMS.SLIST.
+ 770         /**********************************************************************
+ 771         *   PRODUCT:   SAS
+ 772         *   VERSION:   9.4
+ 773         *   CREATOR:   External File Interface
+ 774         *   DATE:      27AUG26
+ 775         *   DESC:      Generated SAS Datastep Code
+ 776         *   TEMPLATE SOURCE:  (None Specified.)
+ 777         ***********************************************************************/
+ 778            data _null_;
+ 779            %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
+ 780            %let _EFIREC_ = 0;     /* clear export record count macro variable */
+ 781            file '/home/ODAUSER/golden/missing/miss_risk_rows.csv' delimiter=',' DSD DROPOVER lrecl=32767;
+ 782            if _n_ = 1 then        /* write column names or labels */
+ 783             do;
+ 784               put
+ 785                  "DEROG"
+ 786               ','
+ 787                  "DELINQ"
+ 788               ','
+ 789                  "DEBTINC"
+ 790               ','
+ 791                  "CITY"
+ 792               ','
+ 793                  "LTV"
+ 794               ','
+ 795                  "LTV_RISK_CAT"
+ 796               ','
+ 797                  "DTI_RISK_CAT"
+ 798               ','
+ 799                  "DELINQ_RISK_CAT"
+ 800               ','
+ 801                  "RISK_SCORE"
+ 802               ','
+ 803                  "RISK_SEGMENT"
+ 804               ;
+ 805             end;
+ 806           set  WORK.MISS_RISK_ROWS   end=EFIEOD;
+ 807               format DEROG best12. ;
+ 808               format DELINQ best12. ;
+ 809               format DEBTINC best12. ;
+ 810               format CITY $59. ;
+ 811               format LTV best12. ;
+ 812               format LTV_RISK_CAT $6. ;
+ 813               format DTI_RISK_CAT $9. ;
+ 814               format DELINQ_RISK_CAT $6. ;
+ 815               format RISK_SCORE best12. ;
+ 816               format RISK_SEGMENT $14. ;
+ 817             do;
+ 818               EFIOUT + 1;
+ 819               put DEROG @;
+ 820               put DELINQ @;
+ 821               put DEBTINC @;
+ 822               put CITY $ @;
+ 823               put LTV @;
+ 824               put LTV_RISK_CAT $ @;
+ 825               put DTI_RISK_CAT $ @;
+ 826               put DELINQ_RISK_CAT $ @;
+ 827               put RISK_SCORE @;
+ 828               put RISK_SEGMENT $ ;
+ 829               ;
+ 830             end;
+ 831            if _ERROR_ then call symputx('_EFIERR_',1);  /* set ERROR detection macro variable */
+ 832            if EFIEOD then call symputx('_EFIREC_',EFIOUT);
+ 833            run;
+ 
+ NOTE: The file '/home/ODAUSER/golden/missing/miss_risk_rows.csv' is:
+       Filename=/home/ODAUSER/golden/missing/miss_risk_rows.csv,
+       Owner Name=ODAUSER,Group Name=oda,
+       Access Permission=-rw-r--r--,
+       Last Modified=27Aug2026:10:32:00
+ 
+ NOTE: 137 records were written to the file '/home/ODAUSER/golden/missing/miss_risk_rows.csv'.
+       The minimum record length was 47.
+       The maximum record length was 95.
+ NOTE: There were 136 observations read from the data set WORK.MISS_RISK_ROWS.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.01 seconds
+       system cpu time     0.00 seconds
+       memory              9246.71k
+       OS Memory           33056.00k
+       Timestamp           08/27/2026 10:32:00 AM
+       Step Count                        52  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     86
+       Page Swaps                        0
+       Voluntary Context Switches        9
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           32
+       
+ 
+ 136 records created in /home/ODAUSER/golden/missing/miss_risk_rows.csv from WORK.MISS_RISK_ROWS.
+   
+   
+ NOTE: "/home/ODAUSER/golden/missing/miss_risk_rows.csv" file was successfully created.
+ NOTE: PROCEDURE EXPORT used (Total process time):
+       real time           0.03 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.01 seconds
+       memory              9246.71k
+       OS Memory           33316.00k
+       Timestamp           08/27/2026 10:32:00 AM
+       Step Count                        52  Switch Count  8
+       Page Faults                       0
+       Page Reclaims                     955
+       Page Swaps                        0
+       Voluntary Context Switches        67
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           48
+       
+ 
+ 834       +%dump_miss(miss_flag_totals);
+ 
+ NOTE: Unable to open parameter catalog: SASUSER.PARMS.PARMS.SLIST in update mode. Temporary parameter values will be saved to 
+ WORK.PARMS.PARMS.SLIST.
+ 835         /**********************************************************************
+ 836         *   PRODUCT:   SAS
+ 837         *   VERSION:   9.4
+ 838         *   CREATOR:   External File Interface
+ 839         *   DATE:      27AUG26
+ 840         *   DESC:      Generated SAS Datastep Code
+ 841         *   TEMPLATE SOURCE:  (None Specified.)
+ 842         ***********************************************************************/
+ 843            data _null_;
+ 844            %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
+ 845            %let _EFIREC_ = 0;     /* clear export record count macro variable */
+ 846            file '/home/ODAUSER/golden/missing/miss_flag_totals.csv' delimiter=',' DSD DROPOVER lrecl=32767;
+ 847            if _n_ = 1 then        /* write column names or labels */
+ 848             do;
+ 849               put
+ 850                  "LOAN_MISS_TOTAL"
+ 851               ','
+ 852                  "MORTDUE_MISS_TOTAL"
+ 853               ','
+ 854                  "VALUE_MISS_TOTAL"
+ 855               ','
+ 856                  "YOJ_MISS_TOTAL"
+ 857               ','
+ 858                  "DEROG_MISS_TOTAL"
+ 859               ','
+ 860                  "DELINQ_MISS_TOTAL"
+ 861               ','
+ 862                  "CLAGE_MISS_TOTAL"
+ 863               ','
+ 864                  "NINQ_MISS_TOTAL"
+ 865               ;
+ 866             end;
+ 867           set  WORK.MISS_FLAG_TOTALS   end=EFIEOD;
+ 868               format LOAN_MISS_TOTAL best12. ;
+ 869               format MORTDUE_MISS_TOTAL best12. ;
+ 870               format VALUE_MISS_TOTAL best12. ;
+ 871               format YOJ_MISS_TOTAL best12. ;
+ 872               format DEROG_MISS_TOTAL best12. ;
+ 873               format DELINQ_MISS_TOTAL best12. ;
+ 874               format CLAGE_MISS_TOTAL best12. ;
+ 875               format NINQ_MISS_TOTAL best12. ;
+ 876             do;
+ 877               EFIOUT + 1;
+ 878               put LOAN_MISS_TOTAL @;
+ 879               put MORTDUE_MISS_TOTAL @;
+ 880               put VALUE_MISS_TOTAL @;
+ 881               put YOJ_MISS_TOTAL @;
+ 882               put DEROG_MISS_TOTAL @;
+ 883               put DELINQ_MISS_TOTAL @;
+ 884               put CLAGE_MISS_TOTAL @;
+ 885               put NINQ_MISS_TOTAL ;
+ 886               ;
+ 887             end;
+ 888            if _ERROR_ then call symputx('_EFIERR_',1);  /* set ERROR detection macro variable */
+ 889            if EFIEOD then call symputx('_EFIREC_',EFIOUT);
+ 890            run;
+ 
+ NOTE: The file '/home/ODAUSER/golden/missing/miss_flag_totals.csv' is:
+       Filename=/home/ODAUSER/golden/missing/miss_flag_totals.csv,
+       Owner Name=ODAUSER,Group Name=oda,
+       Access Permission=-rw-r--r--,
+       Last Modified=27Aug2026:10:32:00
+ 
+ NOTE: 2 records were written to the file '/home/ODAUSER/golden/missing/miss_flag_totals.csv'.
+       The minimum record length was 20.
+       The maximum record length was 134.
+ NOTE: There were 1 observations read from the data set WORK.MISS_FLAG_TOTALS.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.00 seconds
+       system cpu time     0.00 seconds
+       memory              9229.21k
+       OS Memory           33056.00k
+       Timestamp           08/27/2026 10:32:00 AM
+       Step Count                        53  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     76
+       Page Swaps                        0
+       Voluntary Context Switches        9
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           8
+       
+ 
+ 1 records created in /home/ODAUSER/golden/missing/miss_flag_totals.csv from WORK.MISS_FLAG_TOTALS.
+   
+   
+ NOTE: "/home/ODAUSER/golden/missing/miss_flag_totals.csv" file was successfully created.
+ NOTE: PROCEDURE EXPORT used (Total process time):
+       real time           0.03 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.00 seconds
+       memory              9229.21k
+       OS Memory           33316.00k
+       Timestamp           08/27/2026 10:32:00 AM
+       Step Count                        53  Switch Count  8
+       Page Faults                       0
+       Page Reclaims                     978
+       Page Swaps                        0
+       Voluntary Context Switches        67
+       Involuntary Context Switches      1
+       Block Input Operations            0
+       Block Output Operations           32
+       
+ 
+ 891       +%dump_miss(miss_risk_segment_freq);
+ 
+ NOTE: Unable to open parameter catalog: SASUSER.PARMS.PARMS.SLIST in update mode. Temporary parameter values will be saved to 
+ WORK.PARMS.PARMS.SLIST.
+ 892         /**********************************************************************
+ 893         *   PRODUCT:   SAS
+ 894         *   VERSION:   9.4
+ 895         *   CREATOR:   External File Interface
+ 896         *   DATE:      27AUG26
+ 897         *   DESC:      Generated SAS Datastep Code
+ 898         *   TEMPLATE SOURCE:  (None Specified.)
+ 899         ***********************************************************************/
+ 900            data _null_;
+ 901            %let _EFIERR_ = 0; /* set the ERROR detection macro variable */
+ 902            %let _EFIREC_ = 0;     /* clear export record count macro variable */
+ 903            file '/home/ODAUSER/golden/missing/miss_risk_segment_freq.csv' delimiter=',' DSD DROPOVER lrecl=32767;
+ 904            if _n_ = 1 then        /* write column names or labels */
+ 905             do;
+ 906               put
+ 907                  "RISK_SEGMENT"
+ 908               ','
+ 909                  "FREQUENCY"
+ 910               ','
+ 911                  "PERCENT"
+ 912               ;
+ 913             end;
+ 914           set  WORK.MISS_RISK_SEGMENT_FREQ   end=EFIEOD;
+ 915               format RISK_SEGMENT $14. ;
+ 916               format FREQUENCY best12. ;
+ 917               format PERCENT best12. ;
+ 918             do;
+ 919               EFIOUT + 1;
+ 920               put RISK_SEGMENT $ @;
+ 921               put FREQUENCY @;
+ 922               put PERCENT ;
+ 923               ;
+ 924             end;
+ 925            if _ERROR_ then call symputx('_EFIERR_',1);  /* set ERROR detection macro variable */
+ 926            if EFIEOD then call symputx('_EFIREC_',EFIOUT);
+ 927            run;
+ 
+ NOTE: The file '/home/ODAUSER/golden/missing/miss_risk_segment_freq.csv' is:
+       Filename=/home/ODAUSER/golden/missing/miss_risk_segment_freq.csv,
+       Owner Name=ODAUSER,Group Name=oda,
+       Access Permission=-rw-r--r--,
+       Last Modified=27Aug2026:10:32:00
+ 
+ NOTE: 5 records were written to the file '/home/ODAUSER/golden/missing/miss_risk_segment_freq.csv'.
+       The minimum record length was 24.
+       The maximum record length was 30.
+ NOTE: There were 4 observations read from the data set WORK.MISS_RISK_SEGMENT_FREQ.
+ NOTE: DATA statement used (Total process time):
+       real time           0.00 seconds
+       user cpu time       0.01 seconds
+       system cpu time     0.00 seconds
+       memory              9206.18k
+       OS Memory           33056.00k
+       Timestamp           08/27/2026 10:32:00 AM
+       Step Count                        54  Switch Count  0
+       Page Faults                       0
+       Page Reclaims                     75
+       Page Swaps                        0
+       Voluntary Context Switches        9
+       Involuntary Context Switches      0
+       Block Input Operations            0
+       Block Output Operations           16
+       
+ 
+ 4 records created in /home/ODAUSER/golden/missing/miss_risk_segment_freq.csv from WORK.MISS_RISK_SEGMENT_FREQ.
+   
+   
+ NOTE: "/home/ODAUSER/golden/missing/miss_risk_segment_freq.csv" file was successfully created.
+ NOTE: PROCEDURE EXPORT used (Total process time):
+       real time           0.03 seconds
+       user cpu time       0.02 seconds
+       system cpu time     0.00 seconds
+       memory              9206.18k
+       OS Memory           33316.00k
+       Timestamp           08/27/2026 10:32:00 AM
+       Step Count                        54  Switch Count  8
+       Page Faults                       0
+       Page Reclaims                     1024
+       Page Swaps                        0
+       Voluntary Context Switches        67
+       Involuntary Context Switches      2
+       Block Input Operations            0
+       Block Output Operations           32
+       
+ 
+ NOTE: %INCLUDE (level 1) ending.
+ 928        proc product_status; run;
+ 
+ For Base SAS Software ...
+    Custom version information: 9.4_M8
+    Image version information: 9.04.01M8P011823
+ For SAS/STAT ...
+    Custom version information: 15.3
+ For SAS/GRAPH ...
+    Custom version information: 9.4_M8
+ For SAS/ETS ...
+    Custom version information: 15.3
+ For SAS/OR ...
+    Custom version information: 15.3
+ For SAS/IML ...
+    Custom version information: 15.3
+ For SAS/QC ...
+    Custom version information: 15.3
+ For SAS/CONNECT ...
+    Custom version information: 9.4_M8
+ For SAS Enterprise Miner ...
+    Custom version information: 15.3
+ For SAS Time Series Workspace Macros ...
+    Custom version information: 15.3
+ For SAS/ACCESS to Postgres ...
+    Custom version information: 9.4_M8
+ For SAS Integration Technologies ...
+    Custom version information: 9.4_M8
+ For SAS Network Algorithms ...
+    Custom version information: 15.3
+ For SAS/Secure 168-bit ...
+    Custom version information: 9.41_M5
+ For SAS Credit Scoring ...
+    Custom version information: 15.3
+ For SAS Text Miner ...
+    Custom version information: 15.3
+ For SAS High-Performance Forecasting ...
+    Custom version information: 15.3
+ For High Performance Suite ...
+    Custom version information: 2.2_M9
+ For SAS Forecast Server Mid-Tier ...
+    Custom version information: 15.3
+ For SAS/ACCESS Interface to PC Files ...
+    Custom version information: 9.4_M8
+ For SAS/ACCESS Interface to MySQL ...
+    Custom version information: 9.41_M2
+ NOTE: PROCEDURE PRODUCT_STATUS used (Total process time):
+       real time           0.01 seconds
+       user cpu time       0.01 seconds
+       system cpu time     0.00 seconds
+       memory              487.28k
+       OS Memory           27816.00k
+       Timestamp           08/27/2026 10:32:00 AM
+       Step Count                        55  Switch Count  0
+       Page Faults                       16
+       Page Reclaims                     94
+       Page Swaps                        0
+       Voluntary Context Switches        16
+       Involuntary Context Switches      1
+       Block Input Operations            384
+       Block Output Operations           0
+       
+ 
+ 929        
+ 930        
+ 931        OPTIONS NONOTES NOSTIMER NOSOURCE NOSYNTAXCHECK;
+ 941        
